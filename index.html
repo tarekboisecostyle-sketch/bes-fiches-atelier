@@ -465,9 +465,9 @@ body.starting .wrap>section:not(#startScreen){display:none}
           <label class="f">Rainure du dos : profondeur<span class="unit"><input id="rRainP" type="number" step=".5" value="8"></span></label>
           <label class="f">Rainure du dos : distance du bord arrière<span class="unit"><input id="rRainR" type="number" step="1" value="10"></span></label>
           <label class="f">Retrait étagères<span class="unit"><input id="rRet" type="number" value="20"></span></label>
-          <label class="f">Coulissant : profondeur du rail<span class="unit"><input id="rRail" type="number" step="1" value="100"></span></label>
+          <label class="f">Coulissant : largeur du rail (prise sur la profondeur)<span class="unit"><input id="rRail" type="number" step="1" value="90"></span></label>
           <label class="f">Coulissant : recouvrement entre portes<span class="unit"><input id="rRec" type="number" step="1" value="30"></span></label>
-          <label class="f">Coulissant : porte plus basse que l'intérieur de<span class="unit"><input id="rCded" type="number" step="1" value="40"></span></label>
+          <label class="f">Coulissant : hauteur du rail (porte plus basse que l'intérieur de)<span class="unit"><input id="rCded" type="number" step="1" value="34"></span></label>
           <label class="f">Tiroir derrière portes : cale par côté (charnières)<span class="unit"><input id="rIcale" type="number" step="1" value="0"></span></label>
           <label class="f">Tiroir : jeu coulisse par côté<span class="unit"><input id="rCj" type="number" step=".5" value="13"></span></label>
           <label class="f">Tiroir : caisson plus bas que la façade de<span class="unit"><input id="rTh" type="number" step="1" value="40"></span></label>
@@ -584,7 +584,7 @@ body.starting .wrap>section:not(#startScreen){display:none}
     <li><b>Portes calées par compartiment (nouveau)</b>Chaque compartiment a 0, 1 ou 2 portes. Entre deux compartiments, chaque porte couvre la moitié de la séparation, moins la moitié du jeu.</li>
     <li><b>Cuisine complète (nouveau)</b>Chaque caisson a ses propres réglages (bas, haut, colonne, porte, tiroirs, niche frigo). Fiche : élévation de toute la cuisine, débit global repéré C1-5, H2-3…, plans de découpe communs, puis une page par caisson. Les hauts sont à 1450 du sol. Manque-t-il un type de caisson (angle, évier, four, hotte) ?</li>
     <li><b>Tiroirs derrière les portes (nouveau)</b>Choix par compartiment : tiroirs visibles en façade, ou tiroirs intérieurs derrière des portes pleine hauteur. Avec des portes battantes, faut-il des cales sur les côtés pour passer les charnières ? Si oui, de quelle épaisseur ?</li>
-    <li><b>Portes coulissantes (nouveau)</b>Rail sur 100 mm devant, séparations et étagères reculent d'autant. Portes entre les côtés, 30 mm de recouvrement, 40 mm plus basses que l'intérieur (selon votre kit). Ces valeurs correspondent-elles à vos rails ?</li>
+    <li><b>Portes coulissantes (nouveau)</b>Rail de 90 mm de large × 34 mm de haut : séparations et étagères reculent de 90 mm, portes 34 mm plus basses que l'intérieur, 30 mm de recouvrement entre portes.</li>
     <li><b>Tiroirs (nouveau)</b>Coulisses à billes, 13 mm de jeu par côté. Caisson du tiroir 40 mm plus bas que la façade, côtés et avant/arrière en MDF 18, fond MDF 5 cloué dessous. Longueur de coulisse choisie selon la profondeur (250 à 550). Est-ce votre façon de faire ?</li>
     <li><b>Caisson bas : pieds</b>Pieds plastique réglables, 4 par caisson (6 au-delà de 1 m de large), plinthe MDF 18 de 5 mm moins haute que les pieds. H = hauteur sans le plan de travail.</li>
     <li><b>Mot arabe pour tiroir</b>« تيروار » est utilisé sur la fiche. Les employés disent-ils autre chose ?</li>
@@ -1311,6 +1311,7 @@ function snapState(){if(KIT)snapModule();const f={};
     kit:KIT?{mode:KIT.mode,cur:KIT.cur,mods:JSON.parse(JSON.stringify(KIT.mods))}:null,lang:LANG,name:$('#pjName').value};}
 function applyState(st){if(!st||!st.form)throw new Error('format');
   setModeUI(st.mode,!!st.kit);
+  if(String(st.form.rRail)==='100'&&String(st.form.rCded)==='40'){st.form.rRail='90';st.form.rCded='34';}
   Object.entries(st.form).forEach(([id,v])=>{const el=document.getElementById(id);if(!el||el.type==='file')return;if(el.type==='checkbox')el.checked=!!v;else el.value=v;});
   if(st.lang){LANG=st.lang;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.lang===LANG));}
   $('#pjName').value=st.name||'';
