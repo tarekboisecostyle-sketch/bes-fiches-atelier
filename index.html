@@ -353,8 +353,11 @@ body.starting .wrap>section:not(#startScreen){display:none}
     <div class="kb-add" id="kitAdd">
       <label class="f">Ajouter
         <select id="kAddType">
-          <optgroup label="Meubles"><option value="placard">Placard</option><option value="bas-porte">Caisson bas avec porte</option><option value="bas-tir">Caisson bas à tiroirs</option><option value="bas-mix">Caisson bas tiroir + porte</option><option value="bas-niche">Caisson bas ouvert / frigo</option><option value="haut">Caisson haut (mural)</option><option value="col">Colonne</option><option value="etag-ouv">Étagère ouverte</option></optgroup>
-          <optgroup label="Habillage"><option value="panneau">Panneau d'habillage (face, ex. derrière la TV)</option><option value="joue">Joue (panneau de côté, sur le flanc)</option><option value="tablette">Tablette murale</option></optgroup>
+          <optgroup label="Placard / dressing"><option value="placard">Placard complet · portes battantes</option><option value="placard-coul">Placard coulissant</option><option value="dressing">Dressing ouvert (sans portes)</option></optgroup>
+          <optgroup label="Cuisine"><option value="grp:cuisine">Cuisine complète · modèle de départ</option><option value="bas-porte">Caisson bas avec porte</option><option value="bas-tir">Caisson bas à tiroirs</option><option value="bas-mix">Caisson bas tiroir + porte</option><option value="bas-niche">Caisson bas ouvert / frigo</option><option value="haut">Caisson haut (mural)</option><option value="col">Colonne (2 portes)</option></optgroup>
+          <optgroup label="Meuble TV / bibliothèque"><option value="grp:tv">Meuble TV avec habillage · modèle</option><option value="tv-susp">Meuble TV suspendu seul</option><option value="biblio">Bibliothèque</option><option value="etag-ouv">Étagère ouverte</option></optgroup>
+          <optgroup label="Salle de bain"><option value="vasque">Meuble vasque suspendu</option></optgroup>
+          <optgroup label="Habillage"><option value="panneau">Panneau d'habillage mural (derrière TV, tête de lit…)</option><option value="joue">Joue de côté (flanc de meuble)</option><option value="fileur">Fileur (bande de finition contre le mur)</option><option value="tablette">Tablette murale</option></optgroup>
         </select>
       </label>
       <label class="f">Placé
@@ -1136,11 +1139,18 @@ const KPRE={
   'etag-ouv':{row:'col',L:400,H:1800,P:300,base:'socle',socle:60,comps:[{type:'etag',kind:'',n:4,hp:0,hc:350,dp:0,nt:0}]},
   'panneau':{type:'panneau',row:'bas',L:1200,H:1000,P:18,base:'aucun',socle:0,comps:[]},
   'joue':{type:'joue',row:'bas',L:18,H:700,P:450,base:'aucun',socle:0,comps:[]},
-  'tablette':{type:'tablette',row:'bas',L:800,H:18,P:250,base:'aucun',socle:0,comps:[]}};
+  'tablette':{type:'tablette',row:'bas',L:800,H:18,P:250,base:'aucun',socle:0,comps:[]},
+  'placard-coul':{type:'placard',row:'col',L:2400,H:2400,P:600,base:'socle',socle:100,doors:'coul',nc:3,comps:[{type:'pend',n:0,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:4,hp:0,hc:350,dp:0,nt:0},{type:'pend',n:0,hp:0,hc:350,dp:0,nt:0}]},
+  'dressing':{type:'placard',row:'col',L:2000,H:2400,P:550,base:'socle',socle:100,doors:'battant',nc:2,comps:[{type:'pend',n:0,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:5,hp:0,hc:350,dp:0,nt:0},{type:'mixte',n:2,hp:0,hc:350,dp:0,nt:0}]},
+  'tv-susp':{row:'bas',L:1800,H:450,P:450,base:'aucun',socle:0,y:300,comps:[{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0}]},
+  'biblio':{row:'col',L:900,H:2200,P:350,base:'socle',socle:60,comps:[{type:'etag',kind:'',n:5,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:5,hp:0,hc:350,dp:0,nt:0}]},
+  'vasque':{row:'bas',L:800,H:500,P:450,base:'aucun',socle:0,y:350,comps:[{type:'etag',kind:'tir',n:0,hp:0,hc:350,dp:0,nt:2,th:''}]},
+  'fileur':{type:'panneau',row:'bas',L:50,H:720,P:18,base:'aucun',socle:0,comps:[]}};
+const COPYK=['bas-porte','bas-tir','bas-mix','bas-niche','haut','col'];
 const PANEL=['panneau','joue','tablette'],isPanel=m=>PANEL.includes(m.type);
 const TYPE_LB={caisson:'Caisson',placard:'Placard',panneau:'Panneau habillage',joue:'Joue de côté',tablette:'Tablette'};
 let UID=1;const mkMod=(k,over={})=>{const p=JSON.parse(JSON.stringify(KPRE[k]));return Object.assign({type:'caisson',q:1,fix:'vis',plinthe:true,x:null,y:null,anchor:null,id:'m'+(UID++)},p,over);};
-const nextRep=m=>{const pre={placard:'P',panneau:'HB',joue:'J',tablette:'T'}[m.type]||(m.row==='haut'?'H':m.k==='etag-ouv'?'E':'C');let n=1;while(KIT.mods.some(m=>m.rep===pre+n))n++;return pre+n;};
+const nextRep=m=>{const pre={placard:'P',panneau:m.k==='fileur'?'F':'HB',joue:'J',tablette:'T'}[m.type]||(m.row==='haut'?'H':(m.k==='etag-ouv'||m.k==='biblio')?'E':m.k==='tv-susp'?'TV':m.k==='vasque'?'V':'C');let n=1;while(KIT.mods.some(m=>m.rep===pre+n))n++;return pre+n;};
 function kitStarter(k){if(k==='placard')return {mode:'placard',cur:0,mods:[mkMod('placard',{rep:'P1',L:2400,H:2400,P:580,comps:JSON.parse(JSON.stringify(PRESETS.placard.comps))})]};
   const m=k==='cuisine'?mkMod('bas-porte',{rep:'C1'}):k==='tv'?mkMod('bas-porte',{rep:'C1',L:1800,H:450,P:450,base:'aucun',socle:0,y:300,comps:[{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0}]}):mkMod('bas-porte',{rep:'C1',L:600,H:900,P:400,base:'socle',socle:60,comps:[{type:'etag',kind:'',n:2,hp:0,hc:350,dp:1,nt:0}]});
   return {mode:k,cur:0,mods:[m]};}
@@ -1197,7 +1207,7 @@ function kitLayout(res){
   const fb=res.findIndex(rm=>rm.m.row==='bas'&&!rm.panel);let xh=fb>=0?pos[fb].x:0;
   res.forEach((rm,i)=>{if(rm.m.anchor)return;if(rm.m.row==='haut'){const x=rm.m.x??xh;pos[i]={rm,x,y:rm.m.y??kh,...sz(rm)};xh=x+sz(rm).w;}});
   for(let pass=0;pass<res.length;pass++)res.forEach((rm,i)=>{const a=rm.m.anchor;if(!a)return;const j=res.findIndex(r=>r.m.id===a.to);const t=j>=0?pos[j]:null;
-    if(!t)return;pos[i]={rm,x:a.side==='up'?t.x:t.x+t.w,y:a.side==='up'?t.y+t.h:t.y,...sz(rm)};});
+    if(!t)return;const floor=!rm.panel&&rm.m.base!=='aucun'&&rm.m.row!=='haut';pos[i]={rm,x:a.side==='up'?t.x:t.x+t.w,y:a.side==='up'?t.y+t.h:(floor?0:t.y),...sz(rm)};});
   res.forEach((rm,i)=>{if(!pos[i])pos[i]={rm,x:0,y:0,...sz(rm)};});
   return pos;}
 function kitchenSVG(res,W=1000,lang=LANG,sel=true){
@@ -1263,11 +1273,17 @@ $('#kitList').addEventListener('click',e=>{const row=e.target.closest('[data-k]'
   if(a==='dup'){const c=JSON.parse(JSON.stringify(KIT.mods[i]));c.id='m'+(UID++);c.anchor=null;c.x=null;c.y=null;c.rep=nextRep(c);KIT.mods.splice(i+1,0,c);loadModule(i+1);return;}
   if(a==='up'){if(i>0){const t=KIT.mods.splice(i,1)[0];KIT.mods.splice(i-1,0,t);loadModule(i-1);}return;}
   loadModule(i);});
-$('#kAddBtn').addEventListener('click',()=>{const k=$('#kAddType').value,m=mkMod(k);m.k=k;m.rep=nextRep(m);
+$('#kAddBtn').addEventListener('click',()=>{const k=$('#kAddType').value;
+  if(k.startsWith('grp:')){const g=k==='grp:cuisine'?kitDefault():kitTV();g.mods.forEach(m=>{m.rep='';});
+    const base=KIT.mods.length;g.mods.forEach(m=>{m.rep=nextRep(m);KIT.mods.push(m);});
+    if(KIT.mods.some((m,i)=>i<base&&!isPanel(m))&&k==='grp:tv'){const first=g.mods[0];first.anchor=null;}
+    loadModule(base);pjMsg(k==='grp:cuisine'?'Cuisine complète ajoutée : colonne, 4 caissons bas et 3 hauts. Réglez chaque caisson dans la barre.':'Meuble TV avec habillage ajouté.');return;}
+  const m=mkMod(k);m.k=k;m.rep=nextRep(m);
   const cur=KIT.mods[KIT.cur],cp=KIT.pos&&KIT.pos[KIT.cur],place=$('#kPlace').value;let at=KIT.mods.length;
   if(cur&&cp&&place==='up'){m.anchor={side:'up',to:cur.id};if(m.type!=='joue')m.L=cp.w;if(!isPanel(m)&&!isPanel(cur))m.P=cur.P;if(m.type==='joue')m.P=cur.P;m.row=cur.row==='haut'?'haut':m.row;at=KIT.cur+1;}
-  else if(cur&&cp&&(cur.x!=null||cur.y!=null||cur.anchor)){m.anchor={side:'right',to:cur.id};if(!isPanel(m)&&!isPanel(cur))Object.assign(m,{H:cur.H,P:cur.P,base:cur.base,socle:cur.socle,plinthe:cur.plinthe});at=KIT.cur+1;}
-  else if(cur&&cur.row===m.row&&!isPanel(cur)&&!isPanel(m)){Object.assign(m,{H:cur.H,P:cur.P,base:cur.base,socle:cur.socle,plinthe:cur.plinthe,y:cur.y});at=KIT.cur+1;}
+  else if(cur&&cp&&(cur.x!=null||cur.y!=null||cur.anchor)){m.anchor={side:'right',to:cur.id};if(!isPanel(m)&&!isPanel(cur)&&COPYK.includes(k))Object.assign(m,{H:cur.H,P:cur.P,base:cur.base,socle:cur.socle,plinthe:cur.plinthe});at=KIT.cur+1;}
+  else if(cur&&cur.row===m.row&&!isPanel(cur)&&!isPanel(m)&&COPYK.includes(k)&&COPYK.includes(cur.k||'bas-porte')){Object.assign(m,{H:cur.H,P:cur.P,base:cur.base,socle:cur.socle,plinthe:cur.plinthe,y:cur.y});at=KIT.cur+1;}
+  else if(cur&&!isPanel(m)){at=KIT.cur+1;}
   else if(m.row!=='haut'){const lh=KIT.mods.findIndex(x=>x.row==='haut');if(lh>=0)at=lh;}
   if(m.type==='joue'&&cur&&!isPanel(cur)&&place!=='up'){m.H=cur.H;m.P=cur.P;if(cur.y)m.y=cur.y;}
   KIT.mods.splice(at,0,m);loadModule(at);});
