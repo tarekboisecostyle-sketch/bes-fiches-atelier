@@ -217,6 +217,22 @@ ol.valid li.later b{color:var(--muted)}
 .avis .wide{grid-column:1/-1}
 .nodd{border:.3cqw solid var(--ink);padding:.6cqw 1cqw;font-weight:700;font-size:1.45cqw;display:flex;flex-wrap:wrap;gap:.3cqw 2cqw;justify-content:space-between}
 .nodd .ar{font-size:1.6cqw}
+.curproj{text-align:right;font-size:13px;color:var(--muted);max-width:60ch}
+.curproj b{display:block;font:600 18px var(--f-display);color:var(--fg);letter-spacing:.02em}
+#startScreen{display:none}
+body.starting #startScreen{display:block}
+body.starting .wrap>section:not(#startScreen){display:none}
+.st-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px}
+@media (max-width:900px){.st-grid{grid-template-columns:minmax(0,1fr)}}
+.st-card{background:var(--surface);border:1px solid var(--line);padding:18px;display:grid;gap:8px;align-content:start;min-width:0}
+.st-card h2{margin-bottom:6px}
+.st-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.st-type{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:12px;cursor:pointer;display:grid;gap:4px;font:inherit}
+.st-type b{font:600 17px var(--f-display);letter-spacing:.02em}
+.st-type span{font-size:12.5px;color:var(--muted)}
+.st-type[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 4px 0 0 var(--mark);background:var(--accent-soft)}
+.st-list{display:grid;gap:4px}
+.st-list h3{margin-top:8px}
 .projbar{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--mark);padding:12px 14px;display:grid;gap:6px}
 .pb-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
 .pb-name{flex:1 1 240px;min-width:0}
@@ -236,7 +252,7 @@ ol.valid li.later b{color:var(--muted)}
   :root{padding:0!important}
   body{background:#fff!important}
   .wrap{padding:0!important;max-width:none;display:block}
-  .wrap>header,.wrap>section:not(.sheets-sec),.projbar,.sheets-sec .sec-head,.printbar,.sheet-bar{display:none!important}
+  .wrap>header,.wrap>section:not(.sheets-sec),.projbar,#startScreen,.sheets-sec .sec-head,.printbar,.sheet-bar{display:none!important}
   .sheets{gap:0;margin:0;display:block}
   .sheet{width:297mm;height:210mm;aspect-ratio:auto;box-shadow:none;break-after:page;page-break-after:always;padding:7mm 7mm 5mm}
   .sheet:last-child{break-after:auto;page-break-after:auto}
@@ -249,12 +265,12 @@ ol.valid li.later b{color:var(--muted)}
   <div class="brand">
     <div class="logo">BES</div>
     <div>
-      <h1>Fiches atelier <span class="demo-tag">Démo</span></h1>
+      <h1>Fiches atelier</h1>
       <div class="muted">Bois Eco-Style · plaques MDF mélaminé 18 mm · 2800 × 2100</div>
     </div>
   </div>
-  <div>
-    <div class="hint" style="margin-bottom:4px">Produits de base</div>
+  <div class="curproj" id="curProj"></div>
+  <div hidden>
     <div class="lib" role="group" aria-label="Produits de base">
       <button class="chip" type="button" data-prod="placard" aria-pressed="true">Placard</button>
       <button class="chip" type="button" data-prod="cuisine" aria-pressed="false">Cuisine complète</button>
@@ -264,11 +280,39 @@ ol.valid li.later b{color:var(--muted)}
   </div>
 </header>
 
+<section id="startScreen" aria-label="Démarrer">
+  <div class="st-grid">
+    <div class="st-card">
+      <h2>Nouveau projet</h2>
+      <div class="grid2">
+        <label class="f">Chantier<input id="stChantier" type="text" placeholder="ex. Villa Amelkis 131"></label>
+        <label class="f">Nom du projet<input id="stName" type="text" placeholder="ex. Cuisine RDC"></label>
+      </div>
+      <p class="hint" style="margin:10px 0 6px">Que voulez-vous fabriquer ?</p>
+      <div class="st-types" role="radiogroup" aria-label="Type de projet">
+        <button type="button" class="st-type" data-st="placard" aria-pressed="false"><b>Placard</b><span>Penderie, étagères, tiroirs, portes battantes ou coulissantes</span></button>
+        <button type="button" class="st-type" data-st="cuisine" aria-pressed="false"><b>Cuisine</b><span>Caissons bas, hauts et colonnes, plan de travail</span></button>
+        <button type="button" class="st-type" data-st="tv" aria-pressed="false"><b>Meuble TV / étagères</b><span>Caisson, étagères ouvertes, habillage, tablettes</span></button>
+        <button type="button" class="st-type" data-st="meuble" aria-pressed="false"><b>Ensemble de produits</b><span>Meuble sur mesure : caissons, colonnes, placards, panneaux côte à côte</span></button>
+      </div>
+      <label class="check" style="margin-top:10px"><input type="checkbox" id="stExample"> Partir d'un exemple déjà rempli</label>
+      <div class="pb-row" style="margin-top:12px"><button type="button" class="btn solid big" id="stCreate">Créer le projet</button></div>
+      <p class="msg" id="stMsg" role="status"></p>
+    </div>
+    <div class="st-card">
+      <h2>Ouvrir un projet</h2>
+      <div class="pb-row"><button type="button" class="btn" id="stResume" hidden>Reprendre le travail en cours</button><label class="btn filebtn">Ouvrir un fichier (.json)<input type="file" id="stImport" accept=".json,application/json"></label></div>
+      <p class="hint" id="stCloudState" style="margin-top:10px"></p>
+      <div id="stList" class="st-list"></div>
+    </div>
+  </div>
+</section>
+
 <section class="projbar" aria-label="Projets enregistrés">
   <div class="pb-row">
     <label class="f pb-name">Nom du projet<input id="pjName" type="text" placeholder="ex. Villa Amelkis · cuisine"></label>
     <button type="button" class="btn solid" id="pjSave">Enregistrer</button>
-    <button type="button" class="btn" id="pjNew">Nouveau projet</button>
+    <button type="button" class="btn" id="pjNew">Accueil · nouveau projet</button>
     <button type="button" class="btn" id="pjExport">Télécharger (.json)</button>
     <label class="btn filebtn">Ouvrir un fichier<input type="file" id="pjImport" accept=".json,application/json"></label>
   </div>
@@ -282,8 +326,8 @@ ol.valid li.later b{color:var(--muted)}
         <label class="f">Adresse du projet Supabase<input id="clUrl" type="text" placeholder="https://xxxx.supabase.co"></label>
         <label class="f">Clé publique (publishable / anon)<input id="clKey" type="password" placeholder="sb_publishable_…"></label>
       </div>
-      <div class="pb-row" style="margin-top:8px"><button type="button" class="btn solid" id="clSaveCfg">Connecter</button><button type="button" class="btn" id="clForget">Déconnecter</button></div>
-      <p class="hint">La clé reste dans ce navigateur. Elle n'est pas écrite dans le fichier de l'application.</p>
+      <div class="pb-row" style="margin-top:8px"><button type="button" class="btn solid" id="clSaveCfg">Connecter</button><button type="button" class="btn" id="clForget">Revenir à la connexion BES</button></div>
+      <p class="hint">La connexion au projet Supabase de BES est intégrée à l'application : rien à régler sur un nouvel appareil.</p>
     </details>
   </details>
   <details class="pb-list" id="pjDetails">
@@ -985,6 +1029,7 @@ function render(){
   $('#nestBox').innerHTML=r.nests.map(N=>N.plates.map((p,i)=>`<div class="plate"><div class="plate-h"><span>${N.mat} · plaque ${i+1} / ${N.plates.length}</span><span>${N.PL.w} × ${N.PL.h}</span></div>${plateSVG(p)}</div>`).join('')).join('');
   renderSheets();
   if(typeof saveDraft==='function')saveDraft();
+  updHeader();
 }
 
 function cartouche(pg,tot,prod,q){
@@ -1079,6 +1124,8 @@ const PANEL=['panneau','joue','tablette'],isPanel=m=>PANEL.includes(m.type);
 const TYPE_LB={caisson:'Caisson',placard:'Placard',panneau:'Panneau',joue:'Joue',tablette:'Tablette'};
 let UID=1;const mkMod=(k,over={})=>{const p=JSON.parse(JSON.stringify(KPRE[k]));return Object.assign({type:'caisson',q:1,fix:'vis',plinthe:true,x:null,y:null,anchor:null,id:'m'+(UID++)},p,over);};
 const nextRep=m=>{const pre={placard:'P',panneau:'HB',joue:'J',tablette:'T'}[m.type]||(m.row==='haut'?'H':m.k==='etag-ouv'?'E':'C');let n=1;while(KIT.mods.some(m=>m.rep===pre+n))n++;return pre+n;};
+function kitStarter(k){const m=k==='cuisine'?mkMod('bas-porte',{rep:'C1'}):k==='tv'?mkMod('bas-porte',{rep:'C1',L:1800,H:450,P:450,base:'aucun',socle:0,y:300,comps:[{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0}]}):mkMod('bas-porte',{rep:'C1',L:600,H:900,P:400,base:'socle',socle:60,comps:[{type:'etag',kind:'',n:2,hp:0,hc:350,dp:1,nt:0}]});
+  return {mode:k,cur:0,mods:[m]};}
 function kitDefault(){return {mode:'cuisine',cur:0,mods:[
   mkMod('col',{rep:'C1'}),mkMod('bas-porte',{rep:'C2',L:500}),mkMod('bas-tir',{rep:'C3',comps:[{type:'etag',kind:'tir',n:0,hp:0,hc:350,dp:0,nt:3,th:'150, 150, auto'}]}),
   mkMod('bas-porte',{rep:'C4',L:300,comps:[{type:'etag',kind:'',n:2,hp:0,hc:350,dp:1,nt:0}]}),mkMod('bas-porte',{rep:'C5',comps:[{type:'etag',kind:'',n:0,hp:0,hc:350,dp:1,nt:0}]}),
@@ -1245,7 +1292,7 @@ $('#pjList').addEventListener('click',e=>{const b=e.target.closest('[data-pj]');
   else if(b.dataset.pj==='dup'){const c=JSON.parse(JSON.stringify(p));c.name=p.name+' (copie)';c.state.name=c.name;l.splice(i+1,0,c);lsSet(PJ_KEY,l);renderPjList();pjMsg(`Copie créée : « ${c.name} ».`);}
   else if(b.dataset.pj==='del'){if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='Confirmer';setTimeout(()=>{b.classList.remove('armed');b.textContent='Supprimer';},3000);return;}
     l.splice(i,1);lsSet(PJ_KEY,l);renderPjList();pjMsg(`« ${p.name} » supprimé.`);}});
-$('#pjNew').addEventListener('click',()=>{$('#pjName').value='';loadProduct('placard');pjMsg('Nouveau projet : choisissez le produit en haut.');});
+$('#pjNew').addEventListener('click',()=>{showStart();});
 $('#pjExport').addEventListener('click',()=>{const st=snapState(),name=(st.name||st.form.inChantier||'projet').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'_')||'projet';
   try{const blob=new Blob([JSON.stringify(st,null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`BES_${name}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
     pjMsg(`Fichier BES_${name}.json téléchargé. Rangez-le dans le dossier du chantier.`);}catch(err){pjMsg('Le téléchargement est bloqué ici. Ouvrez le fichier de l\'application dans Chrome.',false);}});
@@ -1254,7 +1301,8 @@ $('#pjImport').addEventListener('change',e=>{const f=e.target.files[0];if(!f)ret
 
 /* ---------- cloud Supabase ---------- */
 const CL_KEY='bes_fiches_cloud';
-let CL=lsGet(CL_KEY);
+const CL_DEFAULT={url:'https://ypvjnermbksjxlebeoyr.supabase.co',key:'sb_publishable_IlWas1CWdwQLHNj1NTLSUw_D97PW-wL'};
+let CL=lsGet(CL_KEY)||CL_DEFAULT;
 const clOn=()=>!!(CL&&CL.url&&CL.key);
 async function clReq(path,opt={}){const r=await fetch(CL.url.replace(/\/+$/,'')+'/rest/v1/'+path,{...opt,headers:{apikey:CL.key,Authorization:'Bearer '+CL.key,'Content-Type':'application/json',...(opt.headers||{})}});
   if(!r.ok){let t='';try{t=(await r.json()).message||'';}catch(e){}throw new Error(r.status+' '+t);}return r.status===204?null:r.json().catch(()=>null);}
@@ -1269,7 +1317,7 @@ async function clRefresh(){if(!clOn()){$('#clState').textContent='· non connect
   catch(err){$('#clState').textContent='· erreur';$('#clList').innerHTML=`<p class="st-warn">Connexion impossible (${esc(err.message)}). Vérifiez l'adresse, la clé et que la table fiches_projets existe.</p>`;}}
 $('#clSaveCfg').addEventListener('click',()=>{const url=$('#clUrl').value.trim(),key=$('#clKey').value.trim();if(!url||!key){pjMsg('Remplissez l\'adresse et la clé.',false);return;}
   CL={url,key};lsSet(CL_KEY,CL);pjMsg('Connexion enregistrée dans ce navigateur.');clRefresh();});
-$('#clForget').addEventListener('click',()=>{CL=null;try{localStorage.removeItem(CL_KEY);}catch(e){}$('#clKey').value='';clRefresh();pjMsg('Déconnecté du cloud.');});
+$('#clForget').addEventListener('click',()=>{CL=CL_DEFAULT;try{localStorage.removeItem(CL_KEY);}catch(e){}$('#clUrl').value=CL.url;$('#clKey').value=CL.key;clRefresh();pjMsg('Connexion remise sur le projet Supabase de BES.');});
 $('#clRefresh').addEventListener('click',clRefresh);
 $('#clList').addEventListener('click',async e=>{const b=e.target.closest('[data-cl]');if(!b)return;const id=b.dataset.id;
   if(b.dataset.cl==='open'){try{const r=await clReq(`fiches_projets?id=eq.${id}&select=name,data`);if(!r||!r[0])throw new Error('introuvable');applyState(r[0].data);$('#pjName').value=r[0].name;pjMsg(`« ${r[0].name} » ouvert depuis le cloud.`);document.querySelector('.work').scrollIntoView({behavior:'smooth'});}catch(err){pjMsg('Ouverture impossible : '+err.message,false);}}
@@ -1281,7 +1329,7 @@ const PRESETS={
   caisson:{L:600,H:820,P:560,base:'pieds',socle:100,produit:'Caisson bas C1',comps:[{type:'etag',kind:'etir',n:1,hp:1000,hc:350,dp:1,nt:1,tpos:'haut',th:'150'}]}};
 function loadProduct(k){CUR_MODE=k;
   document.querySelectorAll('[data-prod]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prod===k));
-  if(k==='cuisine'||k==='tv'||k==='meuble'){KIT=k==='cuisine'?kitDefault():k==='tv'?kitTV():kitMeuble();$('#fsKit').hidden=false;$('#kitView').hidden=false;
+  if(k==='cuisine'||k==='tv'||k==='meuble'){KIT=!(window.USE_EX)?kitStarter(k):k==='cuisine'?kitDefault():k==='tv'?kitTV():kitMeuble();$('#fsKit').hidden=false;$('#kitView').hidden=false;
     $('#kitLegend').textContent=k==='cuisine'?'Caissons de la cuisine':'Éléments du meuble';$('#kitView').querySelector('.plan-head span').textContent=k==='cuisine'?'Cuisine · élévation':'Meuble · élévation';
     $('#inProduit').closest('label').firstChild.textContent='Repère de l\'élément';loadModule(0);return;}
   KIT=null;$('#fsKit').hidden=true;$('#kitView').hidden=true;['fsDos','fsEtag','fsComps','baseWrap','socWrap','plWrap','hHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=false;});$('#panelHint').hidden=true;$('#inProduit').closest('label').firstChild.textContent='Produit / repère';
@@ -1325,9 +1373,38 @@ $('#relImport').addEventListener('click',()=>{
   document.querySelector('.work').scrollIntoView({behavior:'smooth',block:'start'});
 });
 
-renderPjList();if(CL){$('#clUrl').value=CL.url||'';$('#clKey').value=CL.key||'';}clRefresh();
-{const d=lsGet(PJ_DRAFT);let ok=false;if(d){try{applyState(d);ok=true;pjMsg(`Travail en cours rétabli (${fmtDate(d.saved)}). Pensez à l'enregistrer avec un nom.`);}catch(e){}}
- if(!ok){renderComps();render();}}
+/* ---------- écran de démarrage ---------- */
+let ST_TYPE=null;
+function updHeader(){const n=$('#pjName').value||'',c=$('#inChantier').value||'';$('#curProj').innerHTML=document.body.classList.contains('starting')?'':`<b>${esc(n||'Projet sans nom')}</b>${esc(c)}${c?' · ':''}${modeLb[KIT?KIT.mode:CUR_MODE]||''}`;}
+function showStart(){document.body.classList.add('starting');ST_TYPE=null;document.querySelectorAll('.st-type').forEach(b=>b.setAttribute('aria-pressed','false'));
+  $('#stChantier').value='';$('#stName').value='';$('#stMsg').textContent='';$('#stResume').hidden=!lsGet(PJ_DRAFT);updHeader();renderStartList();window.scrollTo(0,0);}
+function enterWork(){document.body.classList.remove('starting');updHeader();window.scrollTo(0,0);}
+async function renderStartList(){const loc=pjList();let html='';
+  if(clOn()){$('#stCloudState').textContent='Chargement des projets du cloud…';
+    try{const l=await clReq('fiches_projets?select=id,name,mode,chantier,updated_at&order=updated_at.desc');$('#stCloudState').textContent='';
+      html+=`<h3>Dans le cloud (${l.length})</h3>`+(l.length?l.map(p=>`<div class="pj"><div><b>${esc(p.name)}</b><br><small>${modeLb[p.mode]||''} · ${esc(p.chantier||'')} · ${fmtDate(p.updated_at)}</small></div><button type="button" data-so="cl" data-id="${p.id}">Ouvrir</button><span></span><span></span></div>`).join(''):'<p class="hint">Aucun projet pour l\'instant.</p>');}
+    catch(err){$('#stCloudState').innerHTML=`<span class="st-warn">Cloud injoignable (${esc(err.message)}). Les projets de cet appareil restent disponibles.</span>`;}}
+  if(loc.length)html+=`<h3>Sur cet appareil (${loc.length})</h3>`+loc.map((p,i)=>`<div class="pj"><div><b>${esc(p.name)}</b><br><small>${modeLb[p.state.mode]||''} · ${esc(p.state.form.inChantier||'')} · ${fmtDate(p.state.saved)}</small></div><button type="button" data-so="loc" data-i="${i}">Ouvrir</button><span></span><span></span></div>`).join('');
+  $('#stList').innerHTML=html||'<p class="hint">Aucun projet enregistré.</p>';}
+document.querySelectorAll('.st-type').forEach(b=>b.addEventListener('click',()=>{ST_TYPE=b.dataset.st;document.querySelectorAll('.st-type').forEach(x=>x.setAttribute('aria-pressed',x===b));}));
+$('#stCreate').addEventListener('click',()=>{const ch=$('#stChantier').value.trim(),nm=$('#stName').value.trim();
+  if(!ch&&!nm){$('#stMsg').innerHTML='<span class="st-warn">Donnez au moins le nom du chantier ou du projet.</span>';$('#stChantier').focus();return;}
+  if(!ST_TYPE){$('#stMsg').innerHTML='<span class="st-warn">Choisissez ce que vous voulez fabriquer.</span>';return;}
+  window.USE_EX=$('#stExample').checked;$('#inChantier').value=ch;
+  const name=nm||`${ch} · ${modeLb[ST_TYPE]}`;$('#pjName').value=name;
+  loadProduct(ST_TYPE);window.USE_EX=false;$('#inChantier').value=ch;
+  if(ST_TYPE==='placard'){$('#inProduit').value=nm||'Placard 1';render();}
+  enterWork();$('#pjSave').click();});
+$('#stList').addEventListener('click',async e=>{const b=e.target.closest('[data-so]');if(!b)return;
+  try{if(b.dataset.so==='cl'){const r=await clReq(`fiches_projets?id=eq.${b.dataset.id}&select=name,data`);applyState(r[0].data);$('#pjName').value=r[0].name;}
+    else{const p=pjList()[+b.dataset.i];applyState(p.state);$('#pjName').value=p.name;}
+    enterWork();pjMsg(`« ${$('#pjName').value} » ouvert.`);}catch(err){$('#stCloudState').innerHTML=`<span class="st-warn">Ouverture impossible : ${esc(err.message)}</span>`;}});
+$('#stResume').addEventListener('click',()=>{try{applyState(lsGet(PJ_DRAFT));enterWork();pjMsg('Travail en cours rétabli. Pensez à l\'enregistrer.');}catch(e){$('#stCloudState').textContent='Le travail en cours ne peut pas être rétabli.';}});
+$('#stImport').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{try{applyState(JSON.parse(fr.result));enterWork();pjMsg(`« ${f.name} » ouvert. Cliquez « Enregistrer » pour le garder.`);}catch(err){$('#stCloudState').textContent="Ce fichier n'est pas un projet BES valide.";}e.target.value='';};fr.readAsText(f);});
+$('#pjName').addEventListener('input',updHeader);$('#inChantier').addEventListener('input',updHeader);
+
+renderPjList();$('#clUrl').value=CL.url||'';$('#clKey').value=CL.key||'';clRefresh();
+renderComps();render();showStart();
 </script>
 
 </html>
