@@ -230,6 +230,7 @@ body.starting #startScreen{display:block}
 body.starting .wrap>section:not(#startScreen){display:none}
 .st-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px}
 @media (max-width:900px){.st-grid{grid-template-columns:minmax(0,1fr)}}
+.st-brand{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px}.st-brand .st-bl{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-right:4px}.st-brand a.btn{text-decoration:none}
 .st-card{background:var(--surface);border:1px solid var(--line);padding:18px;display:grid;gap:8px;align-content:start;min-width:0}
 .st-card h2{margin-bottom:6px}
 .st-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
@@ -287,6 +288,11 @@ body.starting .wrap>section:not(#startScreen){display:none}
 </header>
 
 <section id="startScreen" aria-label="Démarrer">
+  <div class="st-brand" role="group" aria-label="Choisir l'activité">
+    <span class="st-bl">Activité</span>
+    <span class="btn solid" aria-current="page">BES · sur mesure</span>
+    <a class="btn" href="zwaq/">ZWAQ DECO · produits catalogue →</a>
+  </div>
   <div class="st-grid">
     <div class="st-card">
       <h2>Nouveau projet</h2>
