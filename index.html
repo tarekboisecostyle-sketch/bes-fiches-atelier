@@ -97,8 +97,13 @@ details.rules .grid2{margin-top:10px}
 .dw .kmod{cursor:pointer}
 .dw .ksel{fill:none;stroke:#F2B705;stroke-width:3}
 .dw .wt{fill:#fff;stroke:#121212;stroke-width:1.15}
-.kit{display:grid;gap:4px}
-.krow{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;border:1px solid var(--line);background:var(--bg);padding:5px 8px;cursor:pointer;font-size:12.5px}
+.kitbar{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);padding:12px 14px;margin-bottom:16px;display:grid;gap:10px}
+.kb-head{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline}
+.kb-head h3{color:var(--accent)}
+.kb-add{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.kb-add .f{min-width:200px;flex:0 1 280px}
+.kit{display:flex;flex-wrap:wrap;gap:6px}
+.krow{display:inline-grid;grid-template-columns:auto auto auto;gap:8px;align-items:center;min-width:0;max-width:100%;border:1px solid var(--line);background:var(--bg);padding:5px 8px;cursor:pointer;font-size:12.5px}
 .krow[aria-current="true"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--mark);background:var(--accent-soft)}
 .krow b{font:600 13px var(--f-mono)}
 .krow .ka{display:flex;gap:2px}
@@ -342,6 +347,22 @@ body.starting .wrap>section:not(#startScreen){display:none}
     <h2>1 · Saisie et plan en temps réel</h2>
     <p class="muted">Changez une cote : le plan, les pièces et la fiche se recalculent tout de suite.</p>
   </div>
+  <div class="kitbar" id="kitBar" hidden>
+    <div class="kb-head"><h3>Produits du projet</h3><span class="hint">Cliquez un produit pour le régler. Tous restent dans le même projet et la même fiche.</span></div>
+    <div class="kit" id="kitList"></div>
+    <div class="kb-add" id="kitAdd">
+      <label class="f">Ajouter
+        <select id="kAddType">
+          <optgroup label="Meubles"><option value="placard">Placard</option><option value="bas-porte">Caisson bas avec porte</option><option value="bas-tir">Caisson bas à tiroirs</option><option value="bas-mix">Caisson bas tiroir + porte</option><option value="bas-niche">Caisson bas ouvert / frigo</option><option value="haut">Caisson haut (mural)</option><option value="col">Colonne</option><option value="etag-ouv">Étagère ouverte</option></optgroup>
+          <optgroup label="Habillage"><option value="panneau">Panneau d'habillage (face, ex. derrière la TV)</option><option value="joue">Joue (panneau de côté, sur le flanc)</option><option value="tablette">Tablette murale</option></optgroup>
+        </select>
+      </label>
+      <label class="f">Placé
+        <select id="kPlace"><option value="right">à droite du produit sélectionné</option><option value="up">au-dessus du produit sélectionné</option></select>
+      </label>
+      <button type="button" class="btn solid" id="kAddBtn">+ Ajouter</button>
+    </div>
+  </div>
   <div class="work">
     <form class="panel" id="form" onsubmit="return false">
       <fieldset>
@@ -354,13 +375,7 @@ body.starting .wrap>section:not(#startScreen){display:none}
       </fieldset>
       <div id="convWrap"><button type="button" class="btn solid" id="convKit" style="width:100%">+ Ajouter un autre produit à ce projet</button></div>
       <fieldset id="fsKit" hidden>
-        <legend id="kitLegend">Caissons de la cuisine</legend>
-        <div class="kit" id="kitList"></div>
-        <div class="kadd" id="kitAdd"><label class="f" style="width:100%">Placer le nouvel élément
-            <select id="kPlace"><option value="right">à droite du sélectionné (même hauteur et profondeur)</option><option value="up">au-dessus du sélectionné (même largeur, bien aligné)</option></select>
-          </label>
-          <button type="button" data-add="bas-porte">Bas porte</button><button type="button" data-add="bas-tir">Bas tiroirs</button><button type="button" data-add="bas-mix">Bas tiroir + porte</button><button type="button" data-add="bas-niche">Bas ouvert / frigo</button><button type="button" data-add="haut">Haut</button><button type="button" data-add="col">Colonne</button><button type="button" data-add="placard">Placard</button><button type="button" data-add="etag-ouv">Étagère ouverte</button><button type="button" data-add="panneau">Panneau d'habillage</button><button type="button" data-add="joue">Joue</button><button type="button" data-add="tablette">Tablette murale</button>
-        </div>
+        <legend id="kitLegend">Position de l'élément sélectionné</legend>
         <div class="grid2">
           <label class="f">Rangée du caisson sélectionné
             <select id="inRow"><option value="bas">Bas</option><option value="haut">Haut</option><option value="col">Colonne</option></select>
@@ -1123,7 +1138,7 @@ const KPRE={
   'joue':{type:'joue',row:'bas',L:18,H:700,P:450,base:'aucun',socle:0,comps:[]},
   'tablette':{type:'tablette',row:'bas',L:800,H:18,P:250,base:'aucun',socle:0,comps:[]}};
 const PANEL=['panneau','joue','tablette'],isPanel=m=>PANEL.includes(m.type);
-const TYPE_LB={caisson:'Caisson',placard:'Placard',panneau:'Panneau',joue:'Joue',tablette:'Tablette'};
+const TYPE_LB={caisson:'Caisson',placard:'Placard',panneau:'Panneau habillage',joue:'Joue de côté',tablette:'Tablette'};
 let UID=1;const mkMod=(k,over={})=>{const p=JSON.parse(JSON.stringify(KPRE[k]));return Object.assign({type:'caisson',q:1,fix:'vis',plinthe:true,x:null,y:null,anchor:null,id:'m'+(UID++)},p,over);};
 const nextRep=m=>{const pre={placard:'P',panneau:'HB',joue:'J',tablette:'T'}[m.type]||(m.row==='haut'?'H':m.k==='etag-ouv'?'E':'C');let n=1;while(KIT.mods.some(m=>m.rep===pre+n))n++;return pre+n;};
 function kitStarter(k){if(k==='placard')return {mode:'placard',cur:0,mods:[mkMod('placard',{rep:'P1',L:2400,H:2400,P:580,comps:JSON.parse(JSON.stringify(PRESETS.placard.comps))})]};
@@ -1242,18 +1257,19 @@ function renderSheetsKit(){
 $('#convKit').addEventListener('click',()=>{if(KIT)return;read();
   const m=mkMod('placard',{rep:S.produit&&S.produit.length<=8?S.produit:'P1',L:S.L,H:S.H,P:S.P,base:S.base,socle:S.socle,plinthe:S.plinthe,q:S.q,fix:S.fix,doors:S.doors,nc:S.nc,comps:S.comps});
   KIT={mode:'placard',cur:0,mods:[m]};setModeUI('placard',true);loadModule(0);
-  document.getElementById('fsKit').scrollIntoView({behavior:'smooth',block:'start'});pjMsg('Le projet accepte maintenant plusieurs produits : utilisez « Ajouter un élément ».');});
+  document.getElementById('kitBar').scrollIntoView({behavior:'smooth',block:'start'});pjMsg('Le projet accepte maintenant plusieurs produits : utilisez « + Ajouter » dans la barre Produits du projet.');});
 $('#kitList').addEventListener('click',e=>{const row=e.target.closest('[data-k]');if(!row)return;const i=+row.dataset.k,a=e.target.closest('[data-ka]')?.dataset.ka;
   if(a==='del'){const did=KIT.mods[i].id;KIT.mods.forEach(o=>{if(o.anchor&&o.anchor.to===did)o.anchor=null;});KIT.mods.splice(i,1);loadModule(Math.min(i,KIT.mods.length-1));return;}
   if(a==='dup'){const c=JSON.parse(JSON.stringify(KIT.mods[i]));c.id='m'+(UID++);c.anchor=null;c.x=null;c.y=null;c.rep=nextRep(c);KIT.mods.splice(i+1,0,c);loadModule(i+1);return;}
   if(a==='up'){if(i>0){const t=KIT.mods.splice(i,1)[0];KIT.mods.splice(i-1,0,t);loadModule(i-1);}return;}
   loadModule(i);});
-$('#kitAdd').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(!b)return;const k=b.dataset.add,m=mkMod(k);m.k=k;m.rep=nextRep(m);
+$('#kAddBtn').addEventListener('click',()=>{const k=$('#kAddType').value,m=mkMod(k);m.k=k;m.rep=nextRep(m);
   const cur=KIT.mods[KIT.cur],cp=KIT.pos&&KIT.pos[KIT.cur],place=$('#kPlace').value;let at=KIT.mods.length;
   if(cur&&cp&&place==='up'){m.anchor={side:'up',to:cur.id};if(m.type!=='joue')m.L=cp.w;if(!isPanel(m)&&!isPanel(cur))m.P=cur.P;if(m.type==='joue')m.P=cur.P;m.row=cur.row==='haut'?'haut':m.row;at=KIT.cur+1;}
   else if(cur&&cp&&(cur.x!=null||cur.y!=null||cur.anchor)){m.anchor={side:'right',to:cur.id};if(!isPanel(m)&&!isPanel(cur))Object.assign(m,{H:cur.H,P:cur.P,base:cur.base,socle:cur.socle,plinthe:cur.plinthe});at=KIT.cur+1;}
   else if(cur&&cur.row===m.row&&!isPanel(cur)&&!isPanel(m)){Object.assign(m,{H:cur.H,P:cur.P,base:cur.base,socle:cur.socle,plinthe:cur.plinthe,y:cur.y});at=KIT.cur+1;}
   else if(m.row!=='haut'){const lh=KIT.mods.findIndex(x=>x.row==='haut');if(lh>=0)at=lh;}
+  if(m.type==='joue'&&cur&&!isPanel(cur)&&place!=='up'){m.H=cur.H;m.P=cur.P;if(cur.y)m.y=cur.y;}
   KIT.mods.splice(at,0,m);loadModule(at);});
 $('#inPos').addEventListener('change',e=>{if(e.target.value==='libre'){const cp=KIT.pos&&KIT.pos[KIT.cur];if(cp){if($('#inX').value==='')$('#inX').value=cp.x;if($('#inY').value==='')$('#inY').value=cp.y;}}});
 $('#kitBox').addEventListener('click',e=>{const g=e.target.closest('[data-mod]');if(g)loadModule(+g.dataset.mod);});
@@ -1264,8 +1280,8 @@ const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e)
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}};
 let CUR_MODE='placard';
 function setModeUI(k,isKit){CUR_MODE=k;document.querySelectorAll('[data-prod]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prod===k));
-  const kit=isKit??['cuisine','tv','meuble'].includes(k);$('#fsKit').hidden=!kit;$('#kitView').hidden=!kit;$('#convWrap').hidden=kit;
-  if(kit){$('#kitLegend').textContent=k==='cuisine'?'Caissons de la cuisine':'Éléments du projet';$('#kitView').querySelector('.plan-head span').textContent=k==='cuisine'?'Cuisine · élévation':'Projet · élévation';$('#inProduit').closest('label').firstChild.textContent='Repère de l\'élément';}
+  const kit=isKit??['cuisine','tv','meuble'].includes(k);$('#fsKit').hidden=!kit;$('#kitView').hidden=!kit;$('#kitBar').hidden=!kit;$('#convWrap').hidden=kit;
+  if(kit){$('#kitView').querySelector('.plan-head span').textContent=k==='cuisine'?'Cuisine · élévation':'Projet · élévation';$('#inProduit').closest('label').firstChild.textContent='Repère de l\'élément';}
   else{['fsDos','fsEtag','fsComps','baseWrap','socWrap','plWrap','hHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=false;});$('#panelHint').hidden=true;$('#inProduit').closest('label').firstChild.textContent='Produit / repère';}}
 function snapState(){if(KIT)snapModule();const f={};
   document.querySelectorAll('#form input[id],#form select[id]').forEach(el=>{if(el.dataset.i!=null||el.type==='file')return;f[el.id]=el.type==='checkbox'?el.checked:el.value;});
@@ -1338,7 +1354,7 @@ function loadProduct(k){CUR_MODE=k;
   document.querySelectorAll('[data-prod]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prod===k));
   if(k==='cuisine'||k==='tv'||k==='meuble'||(k==='placard'&&window.KIT_PLACARD)){KIT=(k==='placard'||!window.USE_EX)?kitStarter(k):k==='cuisine'?kitDefault():k==='tv'?kitTV():kitMeuble();
     setModeUI(k,true);loadModule(0);return;}
-  KIT=null;$('#fsKit').hidden=true;$('#kitView').hidden=true;$('#convWrap').hidden=false;['fsDos','fsEtag','fsComps','baseWrap','socWrap','plWrap','hHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=false;});$('#panelHint').hidden=true;$('#inProduit').closest('label').firstChild.textContent='Produit / repère';
+  KIT=null;$('#fsKit').hidden=true;$('#kitView').hidden=true;$('#kitBar').hidden=true;$('#convWrap').hidden=false;['fsDos','fsEtag','fsComps','baseWrap','socWrap','plWrap','hHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=false;});$('#panelHint').hidden=true;$('#inProduit').closest('label').firstChild.textContent='Produit / repère';
   const p=PRESETS[k];S.product=k;
   $('#inL').value=p.L;$('#inH').value=p.H;$('#inP').value=p.P;$('#inBase').value=p.base;$('#inDoors').value='battant';$('#inSocle').value=p.socle;$('#inProduit').value=p.produit;
   S.comps=JSON.parse(JSON.stringify(p.comps));
