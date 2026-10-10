@@ -70,7 +70,8 @@ details.rules summary{cursor:pointer;font:600 12px var(--f-body);text-transform:
 details.rules .grid2{margin-top:10px}
 .check{display:flex;gap:8px;align-items:center;font-size:13px;grid-column:1/-1}
 .hint{font-size:12px;color:var(--muted);margin:0}
-.plan{background:var(--paper);color:var(--ink);border:1px solid var(--line);padding:14px;min-width:0}
+.plan{background:var(--paper);color:var(--ink);border:1px solid var(--line);padding:14px;min-width:0;position:sticky;top:8px;align-self:start;max-height:calc(100vh - 16px);overflow:auto}
+@media (max-width:900px){.plan{position:static;max-height:none;overflow:visible}}
 .plan-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline;border-bottom:1px solid var(--ink);padding-bottom:6px;margin-bottom:6px;font:600 13px var(--f-mono);text-transform:uppercase;letter-spacing:.06em}
 .plan-head span:last-child{color:var(--ink-soft);font-weight:400}
 .svgbox{overflow-x:auto}
@@ -351,6 +352,7 @@ body.starting .wrap>section:not(#startScreen){display:none}
           <label class="f">Quantité<input id="inQ" type="number" min="1" value="1"></label>
         </div>
       </fieldset>
+      <div id="convWrap"><button type="button" class="btn solid" id="convKit" style="width:100%">+ Ajouter un autre produit à ce projet</button></div>
       <fieldset id="fsKit" hidden>
         <legend id="kitLegend">Caissons de la cuisine</legend>
         <div class="kit" id="kitList"></div>
@@ -1124,7 +1126,8 @@ const PANEL=['panneau','joue','tablette'],isPanel=m=>PANEL.includes(m.type);
 const TYPE_LB={caisson:'Caisson',placard:'Placard',panneau:'Panneau',joue:'Joue',tablette:'Tablette'};
 let UID=1;const mkMod=(k,over={})=>{const p=JSON.parse(JSON.stringify(KPRE[k]));return Object.assign({type:'caisson',q:1,fix:'vis',plinthe:true,x:null,y:null,anchor:null,id:'m'+(UID++)},p,over);};
 const nextRep=m=>{const pre={placard:'P',panneau:'HB',joue:'J',tablette:'T'}[m.type]||(m.row==='haut'?'H':m.k==='etag-ouv'?'E':'C');let n=1;while(KIT.mods.some(m=>m.rep===pre+n))n++;return pre+n;};
-function kitStarter(k){const m=k==='cuisine'?mkMod('bas-porte',{rep:'C1'}):k==='tv'?mkMod('bas-porte',{rep:'C1',L:1800,H:450,P:450,base:'aucun',socle:0,y:300,comps:[{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0}]}):mkMod('bas-porte',{rep:'C1',L:600,H:900,P:400,base:'socle',socle:60,comps:[{type:'etag',kind:'',n:2,hp:0,hc:350,dp:1,nt:0}]});
+function kitStarter(k){if(k==='placard')return {mode:'placard',cur:0,mods:[mkMod('placard',{rep:'P1',L:2400,H:2400,P:580,comps:JSON.parse(JSON.stringify(PRESETS.placard.comps))})]};
+  const m=k==='cuisine'?mkMod('bas-porte',{rep:'C1'}):k==='tv'?mkMod('bas-porte',{rep:'C1',L:1800,H:450,P:450,base:'aucun',socle:0,y:300,comps:[{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0}]}):mkMod('bas-porte',{rep:'C1',L:600,H:900,P:400,base:'socle',socle:60,comps:[{type:'etag',kind:'',n:2,hp:0,hc:350,dp:1,nt:0}]});
   return {mode:k,cur:0,mods:[m]};}
 function kitDefault(){return {mode:'cuisine',cur:0,mods:[
   mkMod('col',{rep:'C1'}),mkMod('bas-porte',{rep:'C2',L:500}),mkMod('bas-tir',{rep:'C3',comps:[{type:'etag',kind:'tir',n:0,hp:0,hc:350,dp:0,nt:3,th:'150, 150, auto'}]}),
@@ -1236,6 +1239,10 @@ function renderSheetsKit(){
   const tot=pages.length,prod=`${lb(cuis?'cuisine':'meuble','fr')} (${res.length})`;
   $('#sheets').innerHTML=pages.map((p,i)=>`<div class="sheet" dir="${dir}">${title(p.k,p.sub)}${p.body}${cartouche(i+1,tot,prod,1)}</div>`).join('');
 }
+$('#convKit').addEventListener('click',()=>{if(KIT)return;read();
+  const m=mkMod('placard',{rep:S.produit&&S.produit.length<=8?S.produit:'P1',L:S.L,H:S.H,P:S.P,base:S.base,socle:S.socle,plinthe:S.plinthe,q:S.q,fix:S.fix,doors:S.doors,nc:S.nc,comps:S.comps});
+  KIT={mode:'placard',cur:0,mods:[m]};setModeUI('placard',true);loadModule(0);
+  document.getElementById('fsKit').scrollIntoView({behavior:'smooth',block:'start'});pjMsg('Le projet accepte maintenant plusieurs produits : utilisez « Ajouter un élément ».');});
 $('#kitList').addEventListener('click',e=>{const row=e.target.closest('[data-k]');if(!row)return;const i=+row.dataset.k,a=e.target.closest('[data-ka]')?.dataset.ka;
   if(a==='del'){const did=KIT.mods[i].id;KIT.mods.forEach(o=>{if(o.anchor&&o.anchor.to===did)o.anchor=null;});KIT.mods.splice(i,1);loadModule(Math.min(i,KIT.mods.length-1));return;}
   if(a==='dup'){const c=JSON.parse(JSON.stringify(KIT.mods[i]));c.id='m'+(UID++);c.anchor=null;c.x=null;c.y=null;c.rep=nextRep(c);KIT.mods.splice(i+1,0,c);loadModule(i+1);return;}
@@ -1256,16 +1263,16 @@ const PJ_KEY='bes_fiches_projets',PJ_DRAFT='bes_fiches_brouillon';
 const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}};
 let CUR_MODE='placard';
-function setModeUI(k){CUR_MODE=k;document.querySelectorAll('[data-prod]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prod===k));
-  const kit=['cuisine','tv','meuble'].includes(k);$('#fsKit').hidden=!kit;$('#kitView').hidden=!kit;
-  if(kit){$('#kitLegend').textContent=k==='cuisine'?'Caissons de la cuisine':'Éléments du meuble';$('#kitView').querySelector('.plan-head span').textContent=k==='cuisine'?'Cuisine · élévation':'Meuble · élévation';$('#inProduit').closest('label').firstChild.textContent='Repère de l\'élément';}
+function setModeUI(k,isKit){CUR_MODE=k;document.querySelectorAll('[data-prod]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prod===k));
+  const kit=isKit??['cuisine','tv','meuble'].includes(k);$('#fsKit').hidden=!kit;$('#kitView').hidden=!kit;$('#convWrap').hidden=kit;
+  if(kit){$('#kitLegend').textContent=k==='cuisine'?'Caissons de la cuisine':'Éléments du projet';$('#kitView').querySelector('.plan-head span').textContent=k==='cuisine'?'Cuisine · élévation':'Projet · élévation';$('#inProduit').closest('label').firstChild.textContent='Repère de l\'élément';}
   else{['fsDos','fsEtag','fsComps','baseWrap','socWrap','plWrap','hHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=false;});$('#panelHint').hidden=true;$('#inProduit').closest('label').firstChild.textContent='Produit / repère';}}
 function snapState(){if(KIT)snapModule();const f={};
   document.querySelectorAll('#form input[id],#form select[id]').forEach(el=>{if(el.dataset.i!=null||el.type==='file')return;f[el.id]=el.type==='checkbox'?el.checked:el.value;});
   return {v:1,saved:new Date().toISOString(),mode:KIT?KIT.mode:CUR_MODE,form:f,comps:KIT?null:JSON.parse(JSON.stringify(S.comps)),
     kit:KIT?{mode:KIT.mode,cur:KIT.cur,mods:JSON.parse(JSON.stringify(KIT.mods))}:null,lang:LANG,name:$('#pjName').value};}
 function applyState(st){if(!st||!st.form)throw new Error('format');
-  setModeUI(st.mode);
+  setModeUI(st.mode,!!st.kit);
   Object.entries(st.form).forEach(([id,v])=>{const el=document.getElementById(id);if(!el||el.type==='file')return;if(el.type==='checkbox')el.checked=!!v;else el.value=v;});
   if(st.lang){LANG=st.lang;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.lang===LANG));}
   $('#pjName').value=st.name||'';
@@ -1329,10 +1336,9 @@ const PRESETS={
   caisson:{L:600,H:820,P:560,base:'pieds',socle:100,produit:'Caisson bas C1',comps:[{type:'etag',kind:'etir',n:1,hp:1000,hc:350,dp:1,nt:1,tpos:'haut',th:'150'}]}};
 function loadProduct(k){CUR_MODE=k;
   document.querySelectorAll('[data-prod]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.prod===k));
-  if(k==='cuisine'||k==='tv'||k==='meuble'){KIT=!(window.USE_EX)?kitStarter(k):k==='cuisine'?kitDefault():k==='tv'?kitTV():kitMeuble();$('#fsKit').hidden=false;$('#kitView').hidden=false;
-    $('#kitLegend').textContent=k==='cuisine'?'Caissons de la cuisine':'Éléments du meuble';$('#kitView').querySelector('.plan-head span').textContent=k==='cuisine'?'Cuisine · élévation':'Meuble · élévation';
-    $('#inProduit').closest('label').firstChild.textContent='Repère de l\'élément';loadModule(0);return;}
-  KIT=null;$('#fsKit').hidden=true;$('#kitView').hidden=true;['fsDos','fsEtag','fsComps','baseWrap','socWrap','plWrap','hHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=false;});$('#panelHint').hidden=true;$('#inProduit').closest('label').firstChild.textContent='Produit / repère';
+  if(k==='cuisine'||k==='tv'||k==='meuble'||(k==='placard'&&window.KIT_PLACARD)){KIT=(k==='placard'||!window.USE_EX)?kitStarter(k):k==='cuisine'?kitDefault():k==='tv'?kitTV():kitMeuble();
+    setModeUI(k,true);loadModule(0);return;}
+  KIT=null;$('#fsKit').hidden=true;$('#kitView').hidden=true;$('#convWrap').hidden=false;['fsDos','fsEtag','fsComps','baseWrap','socWrap','plWrap','hHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=false;});$('#panelHint').hidden=true;$('#inProduit').closest('label').firstChild.textContent='Produit / repère';
   const p=PRESETS[k];S.product=k;
   $('#inL').value=p.L;$('#inH').value=p.H;$('#inP').value=p.P;$('#inBase').value=p.base;$('#inDoors').value='battant';$('#inSocle').value=p.socle;$('#inProduit').value=p.produit;
   S.comps=JSON.parse(JSON.stringify(p.comps));
@@ -1392,8 +1398,7 @@ $('#stCreate').addEventListener('click',()=>{const ch=$('#stChantier').value.tri
   if(!ST_TYPE){$('#stMsg').innerHTML='<span class="st-warn">Choisissez ce que vous voulez fabriquer.</span>';return;}
   window.USE_EX=$('#stExample').checked;$('#inChantier').value=ch;
   const name=nm||`${ch} · ${modeLb[ST_TYPE]}`;$('#pjName').value=name;
-  loadProduct(ST_TYPE);window.USE_EX=false;$('#inChantier').value=ch;
-  if(ST_TYPE==='placard'){$('#inProduit').value=nm||'Placard 1';render();}
+  window.KIT_PLACARD=true;loadProduct(ST_TYPE);window.KIT_PLACARD=false;window.USE_EX=false;$('#inChantier').value=ch;render();
   enterWork();$('#pjSave').click();});
 $('#stList').addEventListener('click',async e=>{const b=e.target.closest('[data-so]');if(!b)return;
   try{if(b.dataset.so==='cl'){const r=await clReq(`fiches_projets?id=eq.${b.dataset.id}&select=name,data`);applyState(r[0].data);$('#pjName').value=r[0].name;}
