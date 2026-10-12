@@ -74,7 +74,7 @@ tfoot td{font-weight:600;border-bottom:0;padding-top:8px}
 .tools button[disabled]{opacity:.6;cursor:progress}
 .photos{display:flex;gap:8px}
 .photos img{flex:1;min-width:0;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:6px;border:1px solid var(--line);background:var(--field)}
-td img.thumb{width:40px;height:50px;object-fit:cover;border-radius:4px;display:block}
+td img.thumb{width:40px;min-width:40px;height:50px;object-fit:cover;border-radius:4px;display:block}
 .empty{background:var(--panel);border:1px dashed var(--line);border-radius:8px;padding:28px;text-align:center;color:var(--muted)}
 .meta{font-size:12px;color:var(--muted);margin:-4px 0 12px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -272,13 +272,13 @@ function renderRecap(){
         el("td",{},(()=>{const v=(p.visuels||VIS[id]||[])[0];return v?el("img",{class:"thumb",src:"img/"+v+".jpg",alt:""}):""})()),el("td",{class:"txt"},p.collection||""),el("td",{class:"txt"},el("strong",{},p.nom||id)," ",el("span",{class:"tag"},p.ref||"")),
         el("td",{class:"txt"},p.variante||t),el("td",{class:"txt"},dimsOf(p,id)),
         el("td",{class:"r"},fmt(c.cr)),el("td",{class:"r"},fmt(c.liv)),el("td",{class:"r"},fmt(c.mkEst)),el("td",{class:"r"},c.mkReel==null?"—":fmt(c.mkReel)),
-        el("td",{class:"r"},fmt0(c.ttc)),el("td",{class:"r"},fmt(c.margeEst)),el("td",{class:"r"},c.margeReel==null?"—":fmt(c.margeReel)),
+        el("td",{class:"r"},fmt(c.ht)),el("td",{class:"r"},fmt0(c.ttc)),el("td",{class:"r"},fmt(c.margeEst)),el("td",{class:"r"},c.margeReel==null?"—":fmt(c.margeReel)),
         el("td",{class:"r"},el("span",{class:"pill "+cls},Math.round(c.pct*100)+" %"))));
     }
   }
   v.append(toolbar([["Exporter le récapitulatif (PDF)",exportRecap]]));
   v.append(el("section",{class:"block"},el("h2",{},"Tous les produits",el("span",{class:"hint"},"montants en DH · cliquez une ligne pour l'ouvrir")),
-    el("div",{class:"scroll"},el("table",{},el("thead",{},el("tr",{},...["","Collection","Produit","Teinte","Dimensions","Production","Livraison","Mkt estimé","Mkt réel","Prix TTC","Marge est.","Marge réelle","Marge %"].map(h=>el("th",{},h)))),tb)),
+    el("div",{class:"scroll"},el("table",{},el("thead",{},el("tr",{},...["","Collection","Produit","Teinte","Dimensions","Production","Livraison","Mkt estimé","Mkt réel","Prix HT","Prix TTC","Marge est.","Marge réelle","Marge %"].map(h=>el("th",{},h)))),tb)),
     el("p",{class:"note"},"Les coûts suivent les prix de l'onglet « Prix fournitures » et les pièces saisies dans chaque produit.")));
   v.append(newProductBlock());
 }
@@ -566,8 +566,8 @@ async function exportGuide(id){
 async function exportRecap(){
   const {doc,W,H}=newDoc("Récapitulatif des coûts","l");let y=title(doc,"Récapitulatif des coûts et marges","Montants en DH par unité vendue");
   const body=[];for(const id of sortedIds()){const p=products[id];for(const t of(p.teintes||[])){const c=cost(p,t);
-    body.push([p.collection||"",p.nom||id,p.variante||t,dimsOf(p,id),fmt(c.cr),fmt(c.liv),fmt(c.mkEst),c.mkReel==null?"-":fmt(c.mkReel),fmt0(c.ttc),fmt(c.margeEst),c.margeReel==null?"-":fmt(c.margeReel),Math.round(c.pct*100)+" %"])}}
-  table(doc,y,["Collection","Produit","Teinte","Dimensions","Production","Livraison","Mkt estimé","Mkt réel","Prix TTC","Marge est.","Marge réelle","Marge %"],body,{columnStyles:Object.fromEntries([4,5,6,7,8,9,10,11].map(i=>[i,{halign:"right"}]))});
+    body.push([p.collection||"",p.nom||id,p.variante||t,dimsOf(p,id),fmt(c.cr),fmt(c.liv),fmt(c.mkEst),c.mkReel==null?"-":fmt(c.mkReel),fmt(c.ht),fmt0(c.ttc),fmt(c.margeEst),c.margeReel==null?"-":fmt(c.margeReel),Math.round(c.pct*100)+" %"])}}
+  table(doc,y,["Collection","Produit","Teinte","Dimensions","Production","Livraison","Mkt estimé","Mkt réel","Prix HT","Prix TTC","Marge est.","Marge réelle","Marge %"],body,{columnStyles:Object.fromEntries([4,5,6,7,8,9,10,11,12].map(i=>[i,{halign:"right"}]))});
   await savePdf(doc,"Recapitulatif_couts_ZWAQ.pdf");
 }
 async function exportPrix(){
