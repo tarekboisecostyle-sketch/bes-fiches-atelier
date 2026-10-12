@@ -187,6 +187,7 @@ function cost(p,teinte){
 
 function dimsOf(p,id){if(id!=="LUNE")return p.dims||"";const pcs=p.pieces||[];const pan=pcs.find(r=>/demi|lune|panneau/i.test(r.nom||""));const tab=pcs.find(r=>/tablette/i.test(r.nom||""));
   if(!pan)return p.dims||"";const W=Math.max(num(pan.larg),tab?num(tab.long):0),D=18+(tab?num(tab.larg):0);return `${fmt0(W)} × ${fmt0(num(pan.long))} × ${fmt0(D)} mm`}
+function visOf(p,id,t){const v=(p.visuels)||VIS[id]||[];const i=(p.teintes||[]).indexOf(t);return v[i>=0&&i<v.length?i:0]}
 function sortedIds(){return Object.keys(products).sort((a,b)=>(products[a].ordre||0)-(products[b].ordre||0))}
 function tabBtn(key,label){return el("button",{role:"tab","aria-selected":String(current===key),onclick:()=>{current=key;renderTabs();renderView()}},label)}
 function renderTabs(){
@@ -269,7 +270,7 @@ function renderRecap(){
       const c=cost(p,t), cls=c.pct>=.45?"good":c.pct>=.35?"warn":"bad";
       tb.append(el("tr",{class:"click",tabindex:"0",title:"Ouvrir "+(p.nom||id),onclick:()=>{current=id;renderTabs();renderView()},
         onkeydown:e=>{if(e.key==="Enter"){current=id;renderTabs();renderView()}}},
-        el("td",{},(()=>{const v=(p.visuels||VIS[id]||[])[0];return v?el("img",{class:"thumb",src:"img/"+v+".jpg",alt:""}):""})()),el("td",{class:"txt"},p.collection||""),el("td",{class:"txt"},el("strong",{},p.nom||id)," ",el("span",{class:"tag"},p.ref||"")),
+        el("td",{},(()=>{const v=visOf(p,id,t);return v?el("img",{class:"thumb",src:"img/"+v+".jpg",alt:""}):""})()),el("td",{class:"txt"},p.collection||""),el("td",{class:"txt"},el("strong",{},p.nom||id)," ",el("span",{class:"tag"},p.ref||"")),
         el("td",{class:"txt"},p.variante||t),el("td",{class:"txt"},dimsOf(p,id)),
         el("td",{class:"r"},fmt(c.cr)),el("td",{class:"r"},fmt(c.liv)),el("td",{class:"r"},fmt(c.mkEst)),el("td",{class:"r"},c.mkReel==null?"—":fmt(c.mkReel)),
         el("td",{class:"r"},fmt(c.ht)),el("td",{class:"r"},fmt0(c.ttc)),el("td",{class:"r"},fmt(c.margeEst)),el("td",{class:"r"},c.margeReel==null?"—":fmt(c.margeReel)),
@@ -565,9 +566,15 @@ async function exportGuide(id){
 }
 async function exportRecap(){
   const {doc,W,H}=newDoc("Récapitulatif des coûts","l");let y=title(doc,"Récapitulatif des coûts et marges","Montants en DH par unité vendue");
-  const body=[];for(const id of sortedIds()){const p=products[id];for(const t of(p.teintes||[])){const c=cost(p,t);
-    body.push([p.collection||"",p.nom||id,p.variante||t,dimsOf(p,id),fmt(c.cr),fmt(c.liv),fmt(c.mkEst),c.mkReel==null?"-":fmt(c.mkReel),fmt(c.ht),fmt0(c.ttc),fmt(c.margeEst),c.margeReel==null?"-":fmt(c.margeReel),Math.round(c.pct*100)+" %"])}}
-  table(doc,y,["Collection","Produit","Teinte","Dimensions","Production","Livraison","Mkt estimé","Mkt réel","Prix HT","Prix TTC","Marge est.","Marge réelle","Marge %"],body,{columnStyles:Object.fromEntries([4,5,6,7,8,9,10,11,12].map(i=>[i,{halign:"right"}]))});
+  const body=[],ims=[],cache={};for(const id of sortedIds()){const p=products[id];for(const t of(p.teintes||[])){const c=cost(p,t);
+    const v=visOf(p,id,t);let im=null;if(v){if(!(v in cache))cache[v]=await imgData("img/"+v+".jpg");im=cache[v]}ims.push(im);
+    body.push(["",p.collection||"",p.nom||id,p.variante||t,dimsOf(p,id),fmt(c.cr),fmt(c.liv),fmt(c.mkEst),c.mkReel==null?"-":fmt(c.mkReel),fmt(c.ht),fmt0(c.ttc),fmt(c.margeEst),c.margeReel==null?"-":fmt(c.margeReel),Math.round(c.pct*100)+" %"])}}
+  table(doc,y,["Photo","Collection","Produit","Teinte","Dimensions","Production","Livraison","Mkt estimé","Mkt réel","Prix HT","Prix TTC","Marge est.","Marge réelle","Marge %"],body,{
+    styles:{...TS.styles,valign:"middle"},
+    columnStyles:{0:{cellWidth:13,minCellHeight:16},...Object.fromEntries([5,6,7,8,9,10,11,12,13].map(i=>[i,{halign:"right"}]))},
+    didDrawCell:d=>{if(d.section!=="body"||d.column.index!==0)return;const im=ims[d.row.index];if(!im)return;
+      let h=d.cell.height-2,w=h*im.w/im.h;if(w>d.cell.width-2){w=d.cell.width-2;h=w*im.h/im.w}
+      doc.addImage(im.d,im.fmt,d.cell.x+(d.cell.width-w)/2,d.cell.y+(d.cell.height-h)/2,w,h)}});
   await savePdf(doc,"Recapitulatif_couts_ZWAQ.pdf");
 }
 async function exportPrix(){
