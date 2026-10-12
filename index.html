@@ -265,6 +265,41 @@ body.starting .wrap>section:not(#startScreen){display:none}
   .sheet:last-child{break-after:auto;page-break-after:auto}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ---- couleurs (animation de l'interface) ---- */
+:root{--c-bleu:#2E5A8E;--c-orange:#E07A2E;--c-vert:#2F8F5B;--c-violet:#7B5AC7;--c-jaune:#D9A400;--c-rose:#C2416B}
+header.top{border-bottom:0;position:relative;padding-bottom:18px}
+header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,var(--c-bleu) 0 34%,var(--c-vert) 34% 52%,var(--c-orange) 52% 70%,var(--mark) 70% 86%,var(--c-violet) 86%)}
+.logo{background:var(--c-bleu);color:#fff;border-color:var(--c-bleu)}
+.panel fieldset{border-left:4px solid var(--fc,var(--accent));padding-left:12px}
+.panel fieldset legend{color:var(--fc,var(--accent))}
+.panel fieldset:nth-of-type(6n+1){--fc:var(--c-bleu)}
+.panel fieldset:nth-of-type(6n+2){--fc:var(--c-vert)}
+.panel fieldset:nth-of-type(6n+3){--fc:var(--c-orange)}
+.panel fieldset:nth-of-type(6n+4){--fc:var(--c-violet)}
+.panel fieldset:nth-of-type(6n+5){--fc:var(--c-jaune)}
+.panel fieldset:nth-of-type(6n){--fc:var(--c-rose)}
+.st-type{border-top:4px solid var(--tc,var(--accent));transition:transform .12s ease,box-shadow .12s ease}
+.st-type:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.08)}
+.st-type b{color:var(--tc,var(--fg))}
+.st-type[data-st=placard]{--tc:var(--c-bleu)}
+.st-type[data-st=cuisine]{--tc:var(--c-orange)}
+.st-type[data-st=tv]{--tc:var(--c-vert)}
+.st-type[data-st=meuble]{--tc:var(--c-violet)}
+.st-type[aria-pressed="true"]{border-color:var(--tc);box-shadow:inset 0 0 0 2px var(--tc);background:color-mix(in srgb,var(--tc) 12%,var(--surface))}
+.btn{transition:background .12s ease,color .12s ease}
+.btn:hover{background:var(--accent-soft)}
+.btn.solid:hover{background:color-mix(in srgb,var(--accent) 85%,#000)}
+.kitbar{border-top:4px solid var(--c-orange)}
+.plate{border-top:3px solid var(--c-vert)}
+.chip[aria-pressed="true"]{box-shadow:inset 0 -3px 0 var(--mark)}
+.nleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;margin:8px 0 2px;color:inherit}
+.nleg span{display:inline-flex;align-items:center;gap:6px}
+.nleg i{display:inline-block;width:16px;height:12px;border:1px solid #333}
+.nleg small{color:#555;font-family:var(--f-mono)}
+.sheet .nleg{font-size:1.05cqw;gap:.3cqw 1.2cqw;margin:.6cqw 0 0}
+.sheet .nleg i{width:1.4cqw;height:1cqw}
+.sheet,.plate{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@media (prefers-reduced-motion:reduce){.st-type,.btn{transition:none}.st-type:hover{transform:none}}
 </style>
 
 <div class="wrap">
@@ -947,7 +982,7 @@ function perspective(r){
 function nest(list,mat){
   const [w0,h0]=plateOf(mat),PL={w:w0,h:h0};
   const K=R.kerf,Tm=R.trim,PW=PL.w-2*Tm,PH=PL.h-2*Tm,items=[],out=[];
-  list.filter(p=>p.mat===mat).forEach(p=>{const q=p.tq??p.qty*S.q;for(let i=0;i<q;i++)items.push({n:p.lab??p.n,w:p.Lc,h:p.Wc,fil:p.fil});});
+  list.filter(p=>p.mat===mat).forEach(p=>{const q=p.tq??p.qty*S.q;for(let i=0;i<q;i++)items.push({n:p.lab??p.n,k:p.key,w:p.Lc,h:p.Wc,fil:p.fil});});
   items.sort((a,b)=>(Math.max(b.w,b.h)-Math.max(a.w,a.h))||(b.w*b.h-a.w*a.h));
   const plates=[],nouv=()=>{const p={free:[{x:0,y:0,w:PW,h:PH}],parts:[],PL};plates.push(p);return p;};
   const tryIn=(pl,it)=>{let best=null;
@@ -959,7 +994,7 @@ function nest(list,mat){
     let best=null;for(const pl of plates){const b=tryIn(pl,it);if(b&&(!best||b.sc<best.sc))best=b;}
     if(!best){const pl=nouv();best=tryIn(pl,it);if(!best){plates.pop();out.push(it);continue;}}
     const {pl,f,rot,pw,ph}=best;
-    pl.parts.push({x:f.x,y:f.y,w:pw,h:ph,n:it.n,rot});
+    pl.parts.push({x:f.x,y:f.y,w:pw,h:ph,n:it.n,k:it.k,rot});
     pl.free.splice(pl.free.indexOf(f),1);
     const rw=f.w-pw-K,bh=f.h-ph-K;
     let a,b;
@@ -970,6 +1005,14 @@ function nest(list,mat){
   const used=plates.reduce((s,p)=>s+p.parts.reduce((t,q)=>t+q.w*q.h,0),0);
   return {mat,PL,plates,out,rend:plates.length?used/(plates.length*PL.w*PL.h):0,count:items.length};
 }
+/* ---------- couleurs des familles de pièces (plan de découpe) ---------- */
+const FAMK={cote:'s',dessus:'s',dessous:'s',montant:'s',montantJ:'s',joue:'s',etagere:'e',tab:'e',porte:'f',ftir:'f',tcote:'t',tav:'t',tfond:'t',dos:'d',plA:'b',plR:'b'};
+const FAMC={s:['#CFE0F5','#1F4573','Structure','الهيكل'],e:['#D3EED6','#1E6B3F','Étagères','الرفوف'],f:['#FBDDBE','#9A4A0F','Portes / façades','الأبواب والواجهات'],
+  t:['#E4D8F6','#563C99','Tiroirs','التيروار'],d:['#E6E6E6','#444444','Dos','الظهر'],b:['#FFF0B3','#7A5C00','Socle / plinthe','السوكل'],o:['#F7D5DF','#8E2549','Autres','أخرى']};
+const famOf=k=>FAMC[FAMK[k]||'o'];
+function nestLegend(plates){const by={};plates.forEach(pl=>pl.parts.forEach(p=>{const f=FAMK[p.k]||'o';(by[f]=by[f]||new Set()).add(p.n);}));
+  return `<div class="nleg">`+Object.keys(FAMC).filter(f=>by[f]).map(f=>{const c=FAMC[f];const lab=LANG==='fr'?c[2]:LANG==='ar'?`<span class="ar">${c[3]}</span>`:`${c[2]} · <span class="ar">${c[3]}</span>`;
+    return `<span><i style="background:${c[0]}"></i><b>${lab}</b> <small>${[...by[f]].sort((a,b)=>String(a).localeCompare(String(b),'fr',{numeric:true})).join(', ')}</small></span>`;}).join('')+`</div>`;}
 function plateSVG(pl,W=560){
   const PL=pl.PL,s=W/PL.w,H=PL.h*s,Tm=R.trim,X=x=>(x+Tm)*s,Y=y=>(y+Tm)*s;
   let o=`<rect class="pt" x="0.8" y="0.8" width="${W-1.6}" height="${H-1.6}"/>`;
@@ -977,7 +1020,8 @@ function plateSVG(pl,W=560){
   pl.free.forEach(f=>{if(f.w>60&&f.h>60)o+=`<path class="chute" d="M${X(f.x)} ${Y(f.y)}L${X(f.x+f.w)} ${Y(f.y+f.h)}M${X(f.x+f.w)} ${Y(f.y)}L${X(f.x)} ${Y(f.y+f.h)}"/>`;});
   pl.parts.forEach(p=>{
     const x=X(p.x),y=Y(p.y),w=p.w*s,h=p.h*s;
-    o+=`<rect class="pz" x="${x}" y="${y}" width="${w}" height="${h}"/>`;
+    const fc=famOf(p.k);o+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${fc[0]}" stroke="#121212" stroke-width=".9"/>`;
+    if(w>=95&&h>=62&&T[p.k])o+=`<text x="${x+w/2}" y="${y+14}" text-anchor="middle" style="font:600 9.5px 'IBM Plex Sans',sans-serif" fill="${fc[1]}">${esc(T[p.k].fr)}</text>`;
     if(w>=22&&h>=20)o+=bub(x+w/2,y+h/2-(h>44?7:0),p.n);
     else if(w>=12&&h>=12)o+=`<text class="ts" x="${x+w/2}" y="${y+h/2+3}" text-anchor="middle">${p.n}</text>`;
     if(w>=70&&h>=44)o+=`<text class="ts" x="${x+w/2}" y="${y+h/2+15}" text-anchor="middle">${fmt(p.rot?p.h:p.w)}×${fmt(p.rot?p.w:p.h)}</text>`;
@@ -1054,7 +1098,7 @@ function render(){
   r.nests=mats.map(m=>nest(L2,m)).filter(N=>N.count);
   $('#nestSum').innerHTML=r.nests.map(N=>`<b>${N.mat} : ${N.plates.length} plaque${N.plates.length>1?'s':''}</b> ${N.PL.w} × ${N.PL.h} pour ${N.count} pièce${N.count>1?'s':''} · rendement ${Math.round(N.rend*100)} %`+(N.out.length?` <span class="st-warn">${N.out.length} pièce(s) trop grande(s) non placée(s)</span>`:'')).join('<br>')
     +`<br>Trait de scie ${fmt(R.kerf)} mm, délignage ${fmt(R.trim)} mm. Les croix grises sont les chutes réutilisables.`;
-  $('#nestBox').innerHTML=r.nests.map(N=>N.plates.map((p,i)=>`<div class="plate"><div class="plate-h"><span>${N.mat} · plaque ${i+1} / ${N.plates.length}</span><span>${N.PL.w} × ${N.PL.h}</span></div>${plateSVG(p)}</div>`).join('')).join('');
+  $('#nestBox').innerHTML=r.nests.map(N=>N.plates.map((p,i)=>`<div class="plate"><div class="plate-h"><span>${N.mat} · plaque ${i+1} / ${N.plates.length}</span><span>${N.PL.w} × ${N.PL.h}</span></div>${plateSVG(p)}${nestLegend([p])}</div>`).join('')).join('');
   renderSheets();
   if(typeof saveDraft==='function')saveDraft();
   updHeader();
@@ -1088,7 +1132,7 @@ function renderSheets(){
   for(let i=0;i<N.plates.length;i+=2){
     const two=N.plates.slice(i,i+2).map((p,j)=>`<div class="pb"><div><span>${lb('plaque')} ${i+j+1} / ${N.plates.length}</span><span>${N.PL.w} × ${N.PL.h} · ${N.mat}</span></div>${plateSVG(p)}</div>`).join('');
     pages.push({k:'nest',sub:`${N.mat} · ${N.plates.length} × ${lb('plaque')} · ${lb('rend')} ${Math.round(N.rend*100)} % · ${LANG==='fr'?'trait de scie':LANG==='ar'?'سمك المنشار':'سمك المنشار · trait de scie'} ${fmt(R.kerf)} mm`,
-      body:`<div class="sh-body" style="align-content:start"><div class="pl2">${two}</div></div>`});
+      body:`<div class="sh-body" style="align-content:start"><div class="pl2">${two}</div>${nestLegend(N.plates.slice(i,i+2))}</div>`});
   }});
   // 4. pièces cotées (en dernier)
   if($('#withPieces').checked)for(let i=0;i<np;i++){const chunk=pieces.slice(i*per,i*per+per);
@@ -1265,7 +1309,7 @@ function renderSheetsKit(){
      ${last2?`<tr><td></td><td><b>${lb('total')}</b></td><td></td><td class="n">${totQ}</td><td colspan="4"></td></tr>`:''}</tbody></table></div>`});}
   last.nests.forEach(N=>{for(let i=0;i<N.plates.length;i+=2){
     const two=N.plates.slice(i,i+2).map((p,j)=>`<div class="pb"><div><span>${lb('plaque')} ${i+j+1} / ${N.plates.length}</span><span>${N.PL.w} × ${N.PL.h} · ${N.mat}</span></div>${plateSVG(p)}</div>`).join('');
-    pages.push({k:'nest',sub:`${N.mat} · ${N.plates.length} × ${lb('plaque')} · ${lb('rend')} ${Math.round(N.rend*100)} %`,body:`<div class="sh-body" style="align-content:start"><div class="pl2">${two}</div></div>`});}});
+    pages.push({k:'nest',sub:`${N.mat} · ${N.plates.length} × ${lb('plaque')} · ${lb('rend')} ${Math.round(N.rend*100)} %`,body:`<div class="sh-body" style="align-content:start"><div class="pl2">${two}</div>${nestLegend(N.plates.slice(i,i+2))}</div>`});}});
   res.filter(rm=>!rm.panel).forEach(rm=>{const M=rm.m;
     pages.push({k:'overview',sub:`${M.rep} · ${M.type==='placard'?lb('placard'):rowLb(M.row)} · ${fmt(M.L)} × ${fmt(M.H)} × ${fmt(M.P)} mm${M.q>1?' · ×'+M.q:''}`,body:`<div class="sh-body p1"><div class="ov">${rm.svg}</div><aside>
       <div class="box"><h4>${lb('debit')} · ${esc(M.rep)}</h4><table class="ptab" style="font-size:1cqw">${rm.list.map(p=>`<tr><td><span class="rp">${p.n}</span></td><td>${lb(p.key)}</td><td class="n" style="font-size:1.1cqw">${p.qty*M.q}</td><td class="n" style="font-size:1.1cqw">${fmt(p.Lc)}×${fmt(p.Wc)}</td></tr>`).join('')}</table></div></aside></div>`});});
