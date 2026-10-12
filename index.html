@@ -455,7 +455,7 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
             <select id="inDoors"><option value="battant" selected>Battantes (charnières)</option><option value="coul">Coulissantes</option></select>
           </label>
           <label class="f" id="ncWrap">Nombre de portes coulissantes
-            <select id="inNc"><option>2</option><option selected>3</option><option>4</option></select>
+            <select id="inNc"><option value="0" selected>Auto (≥ 650 mm)</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
           </label>
         </div>
         <p class="hint" id="doorHint"></p>
@@ -670,7 +670,7 @@ function syncDos(){
 function read(){
   syncDos();
   {const cl=$('#inDoors').value==='coul';$('#fsDoors').hidden=S.product!=='placard';$('#ncWrap').hidden=!cl;
-   $('#doorHint').textContent=cl?`Le rail prend ${v('rRail')} mm devant : séparations et étagères reculent d'autant. Nombre de portes calculé tout seul : chaque porte fait au moins ${v('rCmin')||650} mm. Recouvrement ${v('rRec')} mm.`:'Portes et tiroirs se règlent dans chaque compartiment.';}
+   $('#doorHint').textContent=cl?`Le rail prend ${v('rRail')} mm devant : séparations et étagères reculent d'autant. ${+$('#inNc').value>0?'':'Nombre de portes calculé tout seul : chaque porte fait au moins '+(v('rCmin')||650)+' mm. '} Recouvrement ${v('rRec')} mm.`:'Portes et tiroirs se règlent dans chaque compartiment.';}
   {const b=$('#inBase').value;$('#plWrap').hidden=b!=='pieds';$('#inSocle').disabled=b==='aucun';
    $('#hHint').textContent=b==='pieds'?'H = hauteur totale avec les pieds, sans le plan de travail. Les côtés font H − hauteur des pieds.':b==='socle'?'H = hauteur totale. Les côtés descendent jusqu\'au sol.':'H = hauteur totale, le dessous est posé au sol.';}
   Object.assign(S,{L:v('inL'),H:v('inH'),P:v('inP'),socle:Math.max(0,v('inSocle')),base:$('#inBase').value,doors:$('#inDoors').value,nc:+$('#inNc').value,plinthe:$('#inPlinthe').checked,q:Math.max(1,v('inQ')),
@@ -723,9 +723,9 @@ function compute(){
   // façades : portes et tiroirs calés sur chaque compartiment
   const fronts=[],fz=[],y0f=sc+R.jp,y1f=S.H-R.jp,Hp=y1f-y0f,drawers=[];
   const parseH=(spec,n)=>String(spec||'').split(/[;,\s]+/).filter(Boolean).slice(0,n).map(x=>parseFloat(x)>0?parseFloat(x):0);
-  if(coul){const iw=S.L-2*e,n=Math.max(2,Math.floor((iw-R.rec)/(R.cmin-R.rec))),dw=(iw+(n-1)*R.rec)/n,dh=Hi-R.cded,y=sc+e+R.cded/2;
+  if(coul){const iw=S.L-2*e,n=S.nc>0?S.nc:Math.max(2,Math.floor((iw-R.rec)/(R.cmin-R.rec))),dw=(iw+(n-1)*R.rec)/n,dh=Hi-R.cded,y=sc+e+R.cded/2;
     for(let k=0;k<n;k++)fronts.push({type:'porte',slide:true,rail:k%2,x:e+k*(dw-R.rec),y,w:dw,h:dh,comp:-1});
-    if(dw<R.cmin)warns.push(`Portes coulissantes de ${fmt(dw)} mm : moins de ${R.cmin} mm, risque de portes qui se décalent ou se déforment. Placard trop étroit pour du coulissant : préférez des portes battantes.`);
+    if(dw<R.cmin)warns.push(`Portes coulissantes de ${fmt(dw)} mm : moins de ${R.cmin} mm, risque de portes qui se décalent ou se déforment. ${S.nc>0?'Choisissez moins de portes ou « Auto ».':'Placard trop étroit pour du coulissant : préférez des portes battantes.'}`);
     if(dw>1200)warns.push(`Portes coulissantes de ${fmt(dw)} mm de large : très larges, vérifiez avec votre rail.`);
     S.comps.forEach((c,i)=>{const z={floor:sc+e,ceil:S.H-e,shelf:null},nt=(c.type==='mix3'||c.kind==='etir'||c.kind==='tir')?(c.nt||0):0;
       if(nt>0){const t=parseH(c.th,nt);while(t.length<nt)t.push(0);let cur=sc+e+R.jp;const fl=xs[i]+R.jp,fw=ws[i]-2*R.jp;
@@ -1238,7 +1238,7 @@ function computePanel(m){const d=R.ded?R.chant:0,ch=m.type==='tablette'?{l1:1,w1
   return {m,list:[p],warns:p.fits?[]:[`${T[key].fr} (${fmt(p.Lc)} × ${fmt(p.Wc)}) ne rentre pas dans la plaque.`],acc:m.type==='tablette'?[{k:'supT',v:2*m.q}]:[],
     g:{fronts:[],comps:[]},panel:true,ew:m.type==='joue'?R.ep:m.L,eh:m.type==='tablette'?R.ep:m.H,svg,by:k=>key===k?p:null};}
 function computeModule(m){if(isPanel(m))return computePanel(m);const keys=['L','H','P','base','socle','plinthe','q','fix','produit','comps','product','doors','nc'],bak={};keys.forEach(k=>bak[k]=S[k]);
-  Object.assign(S,{L:m.L,H:m.H,P:m.P,base:m.base,socle:m.socle,plinthe:m.plinthe,q:m.q,fix:m.fix,produit:m.rep,comps:m.comps,product:m.type==='placard'?'placard':'caisson',doors:m.type==='placard'?(m.doors||'battant'):'battant',nc:m.nc||3});
+  Object.assign(S,{L:m.L,H:m.H,P:m.P,base:m.base,socle:m.socle,plinthe:m.plinthe,q:m.q,fix:m.fix,produit:m.rep,comps:m.comps,product:m.type==='placard'?'placard':'caisson',doors:m.type==='placard'?(m.doors||'battant'):'battant',nc:m.nc??0});
   const r=compute();r.m=m;r.svg=overview(r,1000);keys.forEach(k=>S[k]=bak[k]);return r;}
 const rowLb=(row,l=LANG)=>lb(row==='haut'?'rowhaut':row==='col'?'rowcol':'rowbas',l);
 function modSummary(rm){if(rm.panel)return TYPE_LB[rm.m.type];const f=rm.g.fronts,np=f.filter(x=>x.type==='porte').length,nt=f.filter(x=>x.type==='tiroir').length;
