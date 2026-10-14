@@ -399,6 +399,7 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
           <optgroup label="Meuble TV / bibliothèque"><option value="grp:tv">Meuble TV avec habillage · modèle</option><option value="tv-susp">Meuble TV suspendu seul</option><option value="biblio">Bibliothèque</option><option value="etag-ouv">Étagère ouverte</option></optgroup>
           <optgroup label="Salle de bain"><option value="vasque">Meuble vasque suspendu</option></optgroup>
           <optgroup label="Habillage"><option value="panneau">Panneau d'habillage mural (derrière TV, tête de lit…)</option><option value="joue">Joue de côté (flanc de meuble)</option><option value="fileur">Fileur (bande de finition contre le mur)</option><option value="tablette">Tablette murale</option></optgroup>
+          <optgroup label="Espace"><option value="vide-bas">Espace vide en bas (lave-vaisselle, frigo, passage…)</option><option value="vide-haut">Espace vide en haut (hotte, fenêtre…)</option></optgroup>
         </select>
       </label>
       <label class="f">Placé
@@ -647,7 +648,7 @@ const T={
  charn:{fr:'Charnières',ar:'مفصلات'}, tringle:{fr:'Tringle',ar:'عمود التعليق'}, poign:{fr:'Poignées',ar:'مقابض'},
  placard:{fr:'Placard',ar:'خزانة'}, hab:{fr:"Panneau d'habillage",ar:'لوح تلبيس'}, joue:{fr:'Joue',ar:'جنب تلبيس'}, tab:{fr:'Tablette murale',ar:'رف حائطي'}, supT:{fr:'Supports de tablette',ar:'حمالات الرف'},
  elevm:{fr:'Élévation du meuble',ar:'واجهة الأثاث'}, meuble:{fr:'Meuble',ar:'أثاث'}, cuisine:{fr:'Cuisine',ar:'كوزينة'}, elev:{fr:'Élévation de la cuisine',ar:'واجهة الكوزينة'},
- rowbas:{fr:'Bas',ar:'تحتاني'}, rowhaut:{fr:'Haut',ar:'فوقاني'}, rowcol:{fr:'Colonne',ar:'عمود'}, caissons:{fr:'Caissons',ar:'الخزانات'}, ptrav:{fr:'plan de travail',ar:'بلان دو ترافاي'}, caisson:{fr:'Caisson bas',ar:'خزانة سفلية'},
+ rowbas:{fr:'Bas',ar:'تحتاني'}, vide:{fr:'Espace vide',ar:'فراغ'}, rowhaut:{fr:'Haut',ar:'فوقاني'}, rowcol:{fr:'Colonne',ar:'عمود'}, caissons:{fr:'Caissons',ar:'الخزانات'}, ptrav:{fr:'plan de travail',ar:'بلان دو ترافاي'}, caisson:{fr:'Caisson bas',ar:'خزانة سفلية'},
  ftir:{fr:'Façade tiroir',ar:'واجهة التيروار'}, tcote:{fr:'Côté tiroir',ar:'جنب التيروار'}, tav:{fr:'Avant / arrière tiroir',ar:'قدام / ورا التيروار'}, tfond:{fr:'Fond tiroir',ar:'قاع التيروار'},
  coul:{fr:'Coulisses (paires)',ar:'سكك التيروار (زوج)'}, pieds:{fr:'Pieds réglables',ar:'رجلين بلاستيك'}, railH:{fr:'Rail haut coulissant',ar:'سكة الفوق'}, railB:{fr:'Rail bas coulissant',ar:'سكة التحت'}, kitC:{fr:'Kits roulettes (1 / porte)',ar:'روايض (1 لكل باب)'}, poignC:{fr:'Poignées cuvette',ar:'مقابض مدفونة'}, tass:{fr:'Tasseaux',ar:'تاسو (حامل الرف)'}, noDed:{fr:'NE PAS DÉDUIRE LE CHANT : il est déjà déduit. Couper à la cote écrite.',ar:'لا تنقص السينتا: راه محسوب. قطع على المقاس المكتوب.'}, montantJ:{fr:'Séparation joint du dos',ar:'فاصل وصلة الظهر'}, rain:{fr:'rainure',ar:'مجرى (رينور)'}, nest:{fr:'Plan de découpe',ar:'مخطط التقطيع على الألواح'}, plaque:{fr:'Plaque',ar:'لوح'},
  rend:{fr:'Rendement',ar:'المردودية'}, avis:{fr:'Votre avis sur la fiche',ar:'رأيكم في ورقة الورشة'}, pend:{fr:'Penderie',ar:'شماعة'}, total:{fr:'Total pièces',ar:'مجموع القطع'}
@@ -1198,12 +1199,14 @@ const KPRE={
   'tv-susp':{row:'bas',L:1800,H:450,P:450,base:'aucun',socle:0,y:300,comps:[{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0}]},
   'biblio':{row:'col',L:900,H:2200,P:350,base:'socle',socle:60,comps:[{type:'etag',kind:'',n:5,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:5,hp:0,hc:350,dp:0,nt:0}]},
   'vasque':{row:'bas',L:800,H:500,P:450,base:'aucun',socle:0,y:350,comps:[{type:'etag',kind:'tir',n:0,hp:0,hc:350,dp:0,nt:2,th:''}]},
-  'fileur':{type:'panneau',row:'bas',L:50,H:720,P:18,base:'aucun',socle:0,comps:[]}};
+  'fileur':{type:'panneau',row:'bas',L:50,H:720,P:18,base:'aucun',socle:0,comps:[]},
+  'vide-bas':{type:'vide',row:'bas',L:600,H:760,P:560,base:'socle',socle:0,plinthe:false,comps:[]},
+  'vide-haut':{type:'vide',row:'haut',L:600,H:700,P:330,base:'aucun',socle:0,plinthe:false,comps:[]}};
 const COPYK=['bas-porte','bas-tir','bas-mix','bas-niche','haut','col'];
-const PANEL=['panneau','joue','tablette'],isPanel=m=>PANEL.includes(m.type);
-const TYPE_LB={caisson:'Caisson',placard:'Placard',panneau:'Panneau habillage',joue:'Joue de côté',tablette:'Tablette'};
+const PANEL=['panneau','joue','tablette'],isPanel=m=>PANEL.includes(m.type),isVide=m=>m.type==='vide';
+const TYPE_LB={caisson:'Caisson',placard:'Placard',panneau:'Panneau habillage',joue:'Joue de côté',tablette:'Tablette',vide:'Espace vide'};
 let UID=1;const mkMod=(k,over={})=>{const p=JSON.parse(JSON.stringify(KPRE[k]));return Object.assign({type:'caisson',q:1,fix:'vis',plinthe:true,x:null,y:null,anchor:null,id:'m'+(UID++)},p,over);};
-const nextRep=m=>{const pre={placard:'P',panneau:m.k==='fileur'?'F':'HB',joue:'J',tablette:'T'}[m.type]||(m.row==='haut'?'H':(m.k==='etag-ouv'||m.k==='biblio')?'E':m.k==='tv-susp'?'TV':m.k==='vasque'?'V':'C');let n=1;while(KIT.mods.some(m=>m.rep===pre+n))n++;return pre+n;};
+const nextRep=m=>{const pre={placard:'P',panneau:m.k==='fileur'?'F':'HB',joue:'J',tablette:'T',vide:'VD'}[m.type]||(m.row==='haut'?'H':(m.k==='etag-ouv'||m.k==='biblio')?'E':m.k==='tv-susp'?'TV':m.k==='vasque'?'V':'C');let n=1;while(KIT.mods.some(m=>m.rep===pre+n))n++;return pre+n;};
 function kitStarter(k){if(k==='placard')return {mode:'placard',cur:0,mods:[mkMod('placard',{rep:'P1',L:2400,H:2400,P:580,comps:JSON.parse(JSON.stringify(PRESETS.placard.comps))})]};
   const m=k==='cuisine'?mkMod('bas-porte',{rep:'C1'}):k==='tv'?mkMod('bas-porte',{rep:'C1',L:1800,H:450,P:450,base:'aucun',socle:0,y:300,comps:[{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:0,nt:0},{type:'etag',kind:'',n:1,hp:0,hc:350,dp:1,nt:0}]}):mkMod('bas-porte',{rep:'C1',L:600,H:900,P:400,base:'socle',socle:60,comps:[{type:'etag',kind:'',n:2,hp:0,hc:350,dp:1,nt:0}]});
   return {mode:k,cur:0,mods:[m]};}
@@ -1228,8 +1231,8 @@ function loadModule(i){KIT.cur=i;const m=KIT.mods[i];
   $('#inQ').value=m.q;$('#inFix').value=m.fix||'vis';$('#inProduit').value=m.rep;$('#inRow').value=m.row;S.comps=m.comps;
   $('#inX').value=m.x??'';$('#inY').value=m.y??'';fillPos();$('#inDoors').value=m.doors||'battant';$('#inNc').value=String(m.nc||3);
   S.product=m.type==='placard'?'placard':isPanel(m)?'panel':'caisson';
-  const pn=isPanel(m);['fsDos','fsEtag','fsComps','baseWrap','socWrap','plWrap','hHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=pn;});
-  $('#panelHint').hidden=!pn;$('#panelHint').textContent=m.type==='panneau'?'Panneau d\'habillage : seules L et H comptent (MDF 18, chant sur les 4 côtés).':m.type==='joue'?'Joue : seules P (largeur de la joue) et H comptent. Sur le dessin elle fait 18 mm de large.':m.type==='tablette'?'Tablette murale : seules L et P comptent. Sur le dessin elle fait 18 mm de haut.':'';
+  const pn=isPanel(m)||isVide(m);['fsDos','fsEtag','fsComps','baseWrap','socWrap','plWrap','hHint'].forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=pn;});
+  $('#panelHint').hidden=!pn;$('#panelHint').textContent=m.type==='panneau'?'Panneau d\'habillage : seules L et H comptent (MDF 18, chant sur les 4 côtés).':m.type==='joue'?'Joue : seules P (largeur de la joue) et H comptent. Sur le dessin elle fait 18 mm de large.':m.type==='tablette'?'Tablette murale : seules L et P comptent. Sur le dessin elle fait 18 mm de haut.':m.type==='vide'?'Espace vide : seules la largeur L et la hauteur H comptent. Il sépare les caissons, aucune pièce à découper. Rangée Bas = au sol, Haut = à la hauteur des hauts.':'';
   renderComps();render();}
 function computePanel(m){const d=R.ded?R.chant:0,ch=m.type==='tablette'?{l1:1,w1:1,w2:1}:{l1:1,l2:1,w1:1,w2:1};
   const [key,Lf,Wf]=m.type==='panneau'?['hab',m.L,m.H]:m.type==='joue'?['joue',m.H,m.P]:['tab',m.L,m.P];
@@ -1238,11 +1241,15 @@ function computePanel(m){const d=R.ded?R.chant:0,ch=m.type==='tablette'?{l1:1,w1
   const bq=S.q;S.q=m.q;const svg=pieceSVG(p,LANG,620,380);S.q=bq;
   return {m,list:[p],warns:p.fits?[]:[`${T[key].fr} (${fmt(p.Lc)} × ${fmt(p.Wc)}) ne rentre pas dans la plaque.`],acc:m.type==='tablette'?[{k:'supT',v:2*m.q}]:[],
     g:{fronts:[],comps:[]},panel:true,ew:m.type==='joue'?R.ep:m.L,eh:m.type==='tablette'?R.ep:m.H,svg,by:k=>key===k?p:null};}
-function computeModule(m){if(isPanel(m))return computePanel(m);const keys=['L','H','P','base','socle','plinthe','q','fix','produit','comps','product','doors','nc'],bak={};keys.forEach(k=>bak[k]=S[k]);
+function computeVide(m){const W=620,Hh=380,s=Math.min((W-120)/Math.max(m.L,1),(Hh-110)/Math.max(m.H,1)),w=m.L*s,hh=m.H*s,x=(W-w)/2,y=40;
+  const svg=`<svg class="dw" viewBox="0 0 ${W} ${Hh}" xmlns="http://www.w3.org/2000/svg"><rect x="${x}" y="${y}" width="${w}" height="${hh}" fill="none" stroke="#121212" stroke-width="1.15" stroke-dasharray="6 5"/>
+    <text class="ts" x="${W/2}" y="${y+hh/2+4}" text-anchor="middle">${lb('vide')}</text>${dimH(x,x+w,y+hh+40,y+hh,fmt(m.L))}${dimV(y+hh,y,x-40,x,fmt(m.H))}</svg>`;
+  return {m,list:[],warns:[],acc:[],g:{fronts:[],comps:[]},panel:false,vide:true,svg,by:()=>null};}
+function computeModule(m){if(isPanel(m))return computePanel(m);if(isVide(m))return computeVide(m);const keys=['L','H','P','base','socle','plinthe','q','fix','produit','comps','product','doors','nc'],bak={};keys.forEach(k=>bak[k]=S[k]);
   Object.assign(S,{L:m.L,H:m.H,P:m.P,base:m.base,socle:m.socle,plinthe:m.plinthe,q:m.q,fix:m.fix,produit:m.rep,comps:m.comps,product:m.type==='placard'?'placard':'caisson',doors:m.type==='placard'?(m.doors||'battant'):'battant',nc:m.nc??0});
   const r=compute();r.m=m;r.svg=overview(r,1000);keys.forEach(k=>S[k]=bak[k]);return r;}
 const rowLb=(row,l=LANG)=>lb(row==='haut'?'rowhaut':row==='col'?'rowcol':'rowbas',l);
-function modSummary(rm){if(rm.panel)return TYPE_LB[rm.m.type];const f=rm.g.fronts,np=f.filter(x=>x.type==='porte').length,nt=f.filter(x=>x.type==='tiroir').length;
+function modSummary(rm){if(rm.panel||rm.vide)return TYPE_LB[rm.m.type];const f=rm.g.fronts,np=f.filter(x=>x.type==='porte').length,nt=f.filter(x=>x.type==='tiroir').length;
   return [np?np+' porte'+(np>1?'s':''):'',nt?nt+' tiroir'+(nt>1?'s':''):''].filter(Boolean).join(' + ')||'ouvert';}
 function fillPos(){const m=KIT.mods[KIT.cur];if(!m)return;
   const opts=[['auto','Automatique (à la suite des autres)'],['libre','Libre (je tape X et Y)']];
@@ -1251,7 +1258,7 @@ function fillPos(){const m=KIT.mods[KIT.cur];if(!m)return;
   $('#inPos').innerHTML=opts.map(([v,t])=>`<option value="${v}"${v===cur?' selected':''}>${esc(t)}</option>`).join('');
   const lib=cur==='libre';$('#inX').disabled=!lib;$('#inY').disabled=!lib;}
 function renderKitList(){fillPos();$('#kitList').innerHTML=KIT.mods.map((m,i)=>{const rm=KIT.res&&KIT.res[i];
-  return `<div class="krow" data-k="${i}" aria-current="${i===KIT.cur}"><b>${esc(m.rep)}</b><span>${isPanel(m)?TYPE_LB[m.type]:(m.type==='placard'?'Placard':rowLb(m.row,'fr'))} · ${fmt(m.type==='joue'?m.P:m.L)} × ${fmt(m.type==='tablette'?m.P:m.H)}${rm&&!rm.panel?' · '+modSummary(rm):''}${m.q>1?' · ×'+m.q:''}</span>
+  return `<div class="krow" data-k="${i}" aria-current="${i===KIT.cur}"><b>${esc(m.rep)}</b><span>${isPanel(m)?TYPE_LB[m.type]:isVide(m)?TYPE_LB.vide+' '+rowLb(m.row,'fr').toLowerCase():(m.type==='placard'?'Placard':rowLb(m.row,'fr'))} · ${fmt(m.type==='joue'?m.P:m.L)} × ${fmt(m.type==='tablette'?m.P:m.H)}${rm&&!rm.panel&&!rm.vide?' · '+modSummary(rm):''}${m.q>1?' · ×'+m.q:''}</span>
   <span class="ka"><button type="button" data-ka="up" title="Monter" aria-label="Monter ${esc(m.rep)}">↑</button><button type="button" data-ka="dup" title="Dupliquer" aria-label="Dupliquer ${esc(m.rep)}">⧉</button>${KIT.mods.length>1?`<button type="button" data-ka="del" title="Supprimer" aria-label="Supprimer ${esc(m.rep)}">✕</button>`:''}</span></div>`;}).join('');}
 function kitLayout(res){
   const kh=v('kHaut')||1450,pos=[],TOL=100,glue=!$('#kGlue')||$('#kGlue').checked;let xb=0;
@@ -1264,7 +1271,8 @@ function kitLayout(res){
     if(!t)return;const floor=!rm.panel&&rm.m.base!=='aucun'&&rm.m.row!=='haut';
     /* un caisson HAUT « posé sur » un caisson bas se place à la hauteur des hauts (dessous des hauts), aligné sur le bas */
     const upY=(!rm.panel&&rm.m.row==='haut'&&t.rm.m.row!=='haut')?Math.max(kh,t.y+t.h):t.y+t.h;
-    pos[i]={rm,x:ov[i]??(a.side==='up'?t.x:t.x+t.w),y:a.side==='up'?upY:(floor?0:t.y),...sz(rm)};});};
+    const rightY=floor?0:(!rm.panel&&rm.m.row==='haut'&&t.rm.m.row!=='haut')?kh:t.y;
+    pos[i]={rm,x:ov[i]??(a.side==='up'?t.x:t.x+t.w),y:a.side==='up'?upY:rightY,...sz(rm)};});};
   /* collage : dans une même rangée, un petit vide (≤ 100 mm) est refermé et un chevauchement est repoussé.
      Les éléments en position « Libre » ne bougent jamais. */
   const snap=list=>{list.sort((p,q)=>p.x-q.x||p.i-q.i);let e=null;list.forEach(p=>{const libre=p.rm.m.x!=null&&!p.rm.m.anchor;
@@ -1278,14 +1286,15 @@ function kitLayout(res){
   return pos;}
 function kitchenSVG(res,W=1000,lang=LANG,sel=true){
   const kh=v('kHaut')||1450,PT=30,cuis=KIT&&KIT.mode==='cuisine',pos=kitLayout(res);
-  const TW=Math.max(1,...pos.map(p=>p.x+p.w)),basM=res.map((rm,i)=>pos[i]).filter(p=>p.rm.m.row==='bas'&&!p.rm.panel&&p.y===0),basH=Math.max(0,...basM.map(p=>p.h)),TH=Math.max(cuis&&basH?basH+PT:1,...pos.map(p=>p.y+p.h));
+  const TW=Math.max(1,...pos.map(p=>p.x+p.w)),basM=res.map((rm,i)=>pos[i]).filter(p=>p.rm.m.row==='bas'&&!p.rm.panel&&!p.rm.vide&&p.y===0),basH=Math.max(0,...basM.map(p=>p.h)),TH=Math.max(cuis&&basH?basH+PT:1,...pos.map(p=>p.y+p.h));
   const mg={l:104,r:30,t:58,b:70},s=Math.min((W-mg.l-mg.r)/TW,560/TH),Hs=TH*s+mg.t+mg.b,X=x=>mg.l+x*s,Y=y=>mg.t+(TH-y)*s;
   let out=`<path class="p" d="M${X(0)-20} ${Y(0)}H${X(TW)+20}"/>`;
   if(cuis&&basM.length){const x0=Math.min(...basM.map(p=>p.x)),x1=Math.max(...basM.map(p=>p.x+p.w));
     out+=`<rect class="wt" x="${X(x0)}" y="${Y(basH+PT)}" width="${(x1-x0)*s}" height="${PT*s}"/><text class="ts" x="${X(x1)-4}" y="${Y(basH+PT)-4}" text-anchor="end">${lang==='fr'?lb('ptrav','fr'):lang==='ar'?lb('ptrav','ar'):lb('ptrav','ar')+' · '+lb('ptrav','fr')}</text>`;}
   const order=pos.map((p,i)=>i).sort((a,b)=>(pos[a].rm.m.type==='panneau'?0:1)-(pos[b].rm.m.type==='panneau'?0:1));
   order.forEach(i=>{const p=pos[i],M=p.rm.m,g=p.rm.g;
-    out+=`<g class="kmod" data-mod="${i}"><rect class="pf" x="${X(p.x)}" y="${Y(p.y+p.h)}" width="${Math.max(p.w*s,1)}" height="${Math.max(p.h*s,1)}"/>`;
+    out+=`<g class="kmod" data-mod="${i}"><rect class="pf"${p.rm.vide?' style="fill:transparent;stroke:#888;stroke-dasharray:5 4"':''} x="${X(p.x)}" y="${Y(p.y+p.h)}" width="${Math.max(p.w*s,1)}" height="${Math.max(p.h*s,1)}"/>`;
+    if(p.rm.vide&&p.w*s>=34)out+=`<text class="ts" x="${X(p.x+p.w/2)}" y="${Y(p.y+p.h/2)+3}" text-anchor="middle">${lb('vide',lang)}</text>`;
     if(M.type==='panneau'){out+=`<path class="d" d="M${X(p.x)} ${Y(p.y)}L${X(p.x+p.w)} ${Y(p.y+p.h)}M${X(p.x)} ${Y(p.y+p.h)}L${X(p.x+p.w)} ${Y(p.y)}" style="stroke-dasharray:2 4"/>`;}
     if(!p.rm.panel){const sc=M.base==='aucun'?0:M.socle;
       if(sc>0)out+=`<path class="${M.base==='pieds'&&!M.plinthe?'h':'p'}" d="M${X(p.x)} ${Y(p.y+sc)}H${X(p.x+p.w)}"/>`;
@@ -1313,7 +1322,7 @@ function renderSheetsKit(){
   const th=k=>LANG==='mix'?`${T[k].ar}<small>${T[k].fr}</small>`:lb(k);
   const quinc=A2.map(a=>`<li><span>${lb(a.k)}${a.note?' <small>('+a.note+')</small>':''}</span><b>${a.v}</b></li>`).join('');
   pages.push({k:cuis?'elev':'elevm',sub,body:`<div class="sh-body p1"><div class="ov">${kitchenSVG(res,1000,LANG,false)}</div><aside>
-    <div class="box"><h4>${lb('caissons')}</h4><table class="ptab" style="font-size:1.05cqw">${res.map(rm=>`<tr><td><span class="rpl">${esc(rm.m.rep)}</span></td><td>${rm.panel?lb(rm.list[0].key):rowLb(rm.m.row)}</td><td class="n" style="font-size:1.1cqw">${rm.panel?fmt(rm.list[0].Lf)+'×'+fmt(rm.list[0].Wf):fmt(rm.m.L)+'×'+fmt(rm.m.H)+'×'+fmt(rm.m.P)}</td><td>${rm.m.q>1?'×'+rm.m.q:''}</td></tr>`).join('')}</table></div>
+    <div class="box"><h4>${lb('caissons')}</h4><table class="ptab" style="font-size:1.05cqw">${res.map(rm=>`<tr><td><span class="rpl">${esc(rm.m.rep)}</span></td><td>${rm.panel?lb(rm.list[0].key):rm.vide?lb('vide'):rowLb(rm.m.row)}</td><td class="n" style="font-size:1.1cqw">${rm.panel?fmt(rm.list[0].Lf)+'×'+fmt(rm.list[0].Wf):fmt(rm.m.L)+'×'+fmt(rm.m.H)+'×'+fmt(rm.m.P)}</td><td>${rm.m.q>1?'×'+rm.m.q:''}</td></tr>`).join('')}</table></div>
     <div class="box"><h4>${lb('quinc')}</h4><ul>${quinc||'<li>—</li>'}</ul></div>
     <div class="box"><h4>${lb('legend')}</h4><ul><li class="leg"><i></i>${lb('legChant')}</li><li><b>${lb('legCut')}</b></li></ul></div></aside></div>`});
   const per=15,totQ=L2.reduce((a,p)=>a+p.tq,0);
@@ -1324,7 +1333,7 @@ function renderSheetsKit(){
   last.nests.forEach(N=>{for(let i=0;i<N.plates.length;i+=2){
     const two=N.plates.slice(i,i+2).map((p,j)=>`<div class="pb"><div><span>${lb('plaque')} ${i+j+1} / ${N.plates.length}</span><span>${N.PL.w} × ${N.PL.h} · ${N.mat}</span></div>${plateSVG(p)}</div>`).join('');
     pages.push({k:'nest',sub:`${N.mat} · ${N.plates.length} × ${lb('plaque')} · ${lb('rend')} ${Math.round(N.rend*100)} %`,body:`<div class="sh-body" style="align-content:start"><div class="pl2">${two}</div>${nestLegend(N.plates.slice(i,i+2))}</div>`});}});
-  res.filter(rm=>!rm.panel).forEach(rm=>{const M=rm.m;
+  res.filter(rm=>!rm.panel&&!rm.vide).forEach(rm=>{const M=rm.m;
     pages.push({k:'overview',sub:`${M.rep} · ${M.type==='placard'?lb('placard'):rowLb(M.row)} · ${fmt(M.L)} × ${fmt(M.H)} × ${fmt(M.P)} mm${M.q>1?' · ×'+M.q:''}`,body:`<div class="sh-body p1"><div class="ov">${rm.svg}</div><aside>
       <div class="box"><h4>${lb('debit')} · ${esc(M.rep)}</h4><table class="ptab" style="font-size:1cqw">${rm.list.map(p=>`<tr><td><span class="rp">${p.n}</span></td><td>${lb(p.key)}</td><td class="n" style="font-size:1.1cqw">${p.qty*M.q}</td><td class="n" style="font-size:1.1cqw">${fmt(p.Lc)}×${fmt(p.Wc)}</td></tr>`).join('')}</table></div></aside></div>`});});
   const tot=pages.length,prod=`${lb(cuis?'cuisine':'meuble','fr')} (${res.length})`;
@@ -1351,6 +1360,7 @@ $('#kAddBtn').addEventListener('click',()=>{const k=$('#kAddType').value;
   else if(cur&&cur.row===m.row&&!isPanel(cur)&&!isPanel(m)&&COPYK.includes(k)&&COPYK.includes(cur.k||'bas-porte')){Object.assign(m,{H:cur.H,P:cur.P,base:cur.base,socle:cur.socle,plinthe:cur.plinthe,y:cur.y});at=KIT.cur+1;}
   else if(cur&&!isPanel(m)){at=KIT.cur+1;}
   else if(m.row!=='haut'){const lh=KIT.mods.findIndex(x=>x.row==='haut');if(lh>=0)at=lh;}
+  if(isVide(m)&&cur&&!isPanel(cur)&&!isVide(cur)&&cur.row===m.row&&place!=='up'){m.H=cur.H;m.P=cur.P;}
   if(m.type==='joue'&&cur&&!isPanel(cur)&&place!=='up'){m.H=cur.H;m.P=cur.P;if(cur.y)m.y=cur.y;}
   KIT.mods.splice(at,0,m);loadModule(at);});
 $('#inPos').addEventListener('change',e=>{if(e.target.value==='libre'){const cp=KIT.pos&&KIT.pos[KIT.cur];if(cp){if($('#inX').value==='')$('#inX').value=cp.x;if($('#inY').value==='')$('#inY').value=cp.y;}}});
