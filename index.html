@@ -554,6 +554,7 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
   </div>
   <div class="printbar">
     <button type="button" class="btn solid big" id="printBtn">Imprimer la fiche</button>
+    <label class="check" style="grid-column:auto" id="withVuesWrap" hidden><input type="checkbox" id="withVues" checked> Ajouter la vue d'ensemble de chaque caisson (1 page par caisson)</label>
     <label class="check" style="grid-column:auto"><input type="checkbox" id="withPieces"> Ajouter les pièces cotées</label>
     <label class="check" style="grid-column:auto"><input type="checkbox" id="withAvis" checked> Ajouter la feuille d'avis (patron et employés)</label>
     <p class="hint" style="flex-basis:100%">Si l'impression ne s'ouvre pas dans cette page Claude, ouvrez le fichier <b>bes-fiches-atelier.html</b> envoyé dans la conversation avec Chrome, puis cliquez sur ce bouton. Choisissez « Paysage » et « Enregistrer en PDF » ou votre imprimante.</p>
@@ -1127,6 +1128,7 @@ function cartouche(pg,tot,prod,q){
 function title(k,sub){return `<div class="sh-title"><div><b>${lb(k)}</b><small>${esc(sub)}</small></div></div>`;}
 
 function renderSheets(){
+  $('#withVuesWrap').hidden=!KIT;
   if(KIT)return renderSheetsKit();
   const r=last,dir=LANG==='ar'?'rtl':'ltr',pieces=r.list,per=6,np=Math.ceil(pieces.length/per);
   const sub=`${lb(S.product||'placard')} ${fmt(S.L)} × ${fmt(S.H)} × ${fmt(S.P)} mm`, pages=[];
@@ -1347,7 +1349,7 @@ function renderSheetsKit(){
   last.nests.forEach(N=>{for(let i=0;i<N.plates.length;i+=2){
     const two=N.plates.slice(i,i+2).map((p,j)=>`<div class="pb"><div><span>${lb('plaque')} ${i+j+1} / ${N.plates.length}</span><span>${N.PL.w} × ${N.PL.h} · ${N.mat}</span></div>${plateSVG(p)}</div>`).join('');
     pages.push({k:'nest',sub:`${N.mat} · ${N.plates.length} × ${lb('plaque')} · ${lb('rend')} ${Math.round(N.rend*100)} %`,body:`<div class="sh-body" style="align-content:start"><div class="pl2">${two}</div>${nestLegend(N.plates.slice(i,i+2))}</div>`});}});
-  res.filter(rm=>!rm.panel&&!rm.vide).forEach(rm=>{const M=rm.m;
+  if($('#withVues').checked)res.filter(rm=>!rm.panel&&!rm.vide).forEach(rm=>{const M=rm.m;
     pages.push({k:'overview',sub:`${M.rep} · ${M.type==='placard'?lb('placard'):rowLb(M.row)} · ${fmt(M.L)} × ${fmt(M.H)} × ${fmt(M.P)} mm${M.q>1?' · ×'+M.q:''}`,body:`<div class="sh-body p1"><div class="ov">${rm.svg}</div><aside>
       <div class="box"><h4>${lb('debit')} · ${esc(M.rep)}</h4><table class="ptab" style="font-size:1cqw">${rm.list.map(p=>`<tr><td><span class="rp">${p.n}</span></td><td>${lb(p.key)}</td><td class="n" style="font-size:1.1cqw">${p.qty*M.q}</td><td class="n" style="font-size:1.1cqw">${fmt(p.Lc)}×${fmt(p.Wc)}</td></tr>`).join('')}</table></div></aside></div>`});});
   const tot=pages.length,prod=`${lb(cuis?'cuisine':'meuble','fr')} (${res.length})`;
@@ -1472,6 +1474,7 @@ $('#inDoors').addEventListener('change',()=>{renderComps();render();});
 $('#printBtn').addEventListener('click',()=>{try{window.print();}catch(e){}});
 $('#withAvis').addEventListener('change',renderSheets);
 $('#withPieces').addEventListener('change',renderSheets);
+$('#withVues').addEventListener('change',renderSheets);
 document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{if(KIT){LANG=b.dataset.lang;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));render();return;}
   LANG=b.dataset.lang;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderSheets();}));
 $('#photoIn').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{PHOTO=fr.result;renderSheets();};fr.readAsDataURL(f);});
