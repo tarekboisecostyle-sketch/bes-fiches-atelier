@@ -752,12 +752,22 @@ function compute(){
       for(let k=0;k<dp;k++)fronts.push({type:'porte',x:fl+k*(dw+R.jj),y:y0f,w:dw,h:Hp,comp:i,hinge:dp===2?(k===0?'L':'R'):(i<nc/2?'L':'R')});
       if(dw>650)warns.push(`Compartiment ${i+1} : portes de ${fmt(dw)} mm de large, au-delà de 650 mm elles risquent de tomber. Mettez 2 portes.`);
       fz.push(z);return;}
-    if(dp>0&&nt===0&&c.split>0&&c.type==='etag'){const hb=Math.min(c.split,Hp-200),ht=Hp-hb-R.jj,dw=(fw-(dp-1)*R.jj)/dp;
+    const cut=c.cut??(c.split>0?-1:0),onShelf=cut>0&&cut<=(c.n||0);
+    if(dp>0&&nt===0&&c.type==='etag'&&(onShelf||(cut===-1&&c.split>0))){let hb;
+      if(onShelf){/* porte coupée au milieu de l'étagère choisie (même calcul que la place des étagères) */
+        const n=c.n,fl0=sc+e,tot=(S.H-e)-fl0-n*e,sp=String(c.sp||'').split(/[;,\s]+/).filter(Boolean).slice(0,n+1).map(x=>parseFloat(x)>0?parseFloat(x):0);
+        while(sp.length<n+1)sp.push(0);let au=sp.map((v,j)=>v?-1:j).filter(j=>j>=0);if(!au.length){au=[n];sp[n]=0;}
+        const r0=(tot-sp.reduce((a,b)=>a+b,0))/au.length;au.forEach(j=>sp[j]=r0);
+        let ys=fl0;for(let j=0;j<cut;j++){ys+=sp[j];if(j<cut-1)ys+=e;}
+        hb=ys+e/2-R.jj/2-y0f;}
+      else hb=Math.min(c.split,Hp-200);
+      const ht=Hp-hb-R.jj,dw=(fw-(dp-1)*R.jj)/dp;
       for(let k=0;k<dp;k++){const hg=dp===2?(k===0?'L':'R'):(i<nc/2?'L':'R');
         fronts.push({type:'porte',x:fl+k*(dw+R.jj),y:y0f,w:dw,h:hb,comp:i,hinge:hg});fronts.push({type:'porte',x:fl+k*(dw+R.jj),y:y0f+hb+R.jj,w:dw,h:ht,comp:i,hinge:hg});}
       if(dw>650)warns.push(`Compartiment ${i+1} : portes de ${fmt(dw)} mm de large, au-delà de 650 mm elles risquent de tomber. Mettez 2 portes.`);
-      if(ht<250)warns.push(`Compartiment ${i+1} : la porte du haut ne fait que ${fmt(ht)} mm.`);
-      z.split=y0f+hb+R.jj/2-e/2;fz.push(z);return;}
+      if(ht<200)warns.push(`Compartiment ${i+1} : la porte du haut ne fait que ${fmt(ht)} mm.`);
+      if(hb<200)warns.push(`Compartiment ${i+1} : la porte du bas ne fait que ${fmt(hb)} mm.`);
+      if(!onShelf)z.split=y0f+hb+R.jj/2-e/2;fz.push(z);return;}
     let cur, doorB=y0f, doorT=y1f;
     if(nt>0&&pos==='haut'){cur=y1f;hs.forEach((h,k)=>{fronts.push({type:'tiroir',x:fl,y:cur-h,w:fw,h,comp:i});drawers.push({comp:i,h});cur=cur-h-R.jj;});
       doorT=cur;z.ceil=cur+R.jj/2;}
@@ -1053,7 +1063,10 @@ function renderComps(){
        const tp=(c.tpos||(S.product==='caisson'?'haut':'bas'));
        return `<div class="grid2" style="margin-top:6px">
        ${cl||c.kind==='tir'?'':`<label class="f">Portes<select data-i="${i}" data-f="dp" id="cdp${i}">${[0,1,2].map(v=>`<option value="${v}"${(c.dp||0)===v?' selected':''}>${v}</option>`).join('')}</select></label>`}
-       ${!cl&&c.type==='etag'&&!showT&&(c.dp||0)>0?`<label class="f">Porte du bas (vide = 1 porte)<span class="unit"><input data-i="${i}" data-f="split" id="csplit${i}" type="number" step="10" placeholder="pleine hauteur" value="${c.split>0?c.split:''}"></span></label>`:''}
+       ${!cl&&c.type==='etag'&&!showT&&(c.dp||0)>0?(()=>{const cut=c.cut??(c.split>0?-1:0),n=c.n||0;
+         const o=[[0,'Pleine hauteur (1 porte)'],...Array.from({length:n},(_,k)=>[k+1,`Coupée sur l'étagère ${k+1}${n>1&&k===0?' (la plus basse)':n>1&&k===n-1?' (la plus haute)':''}`]),[-1,'Hauteur du bas au choix']];
+         return `<label class="f">Portes en hauteur<select data-i="${i}" data-f="cut" id="ccut${i}">${o.map(([v,t])=>`<option value="${v}"${v===cut?' selected':''}>${t}</option>`).join('')}</select></label>`
+         +(cut===-1?`<label class="f">Porte du bas (hauteur)<span class="unit"><input data-i="${i}" data-f="split" id="csplit${i}" type="number" step="10" placeholder="ex. 700" value="${c.split>0?c.split:''}"></span></label>`:'');})():''}
        ${showT?`<label class="f">${cl?'Tiroirs intérieurs':'Tiroirs'}<input data-i="${i}" data-f="nt" id="cnt${i}" type="number" min="1" max="6" value="${c.nt||0}"></label>`:''}
        ${showT&&(c.nt||0)>0&&!cl&&(c.dp||0)>0?`<label class="f">Tiroirs<select data-i="${i}" data-f="tin" id="ctin${i}"><option value=""${c.tin?'':' selected'}>visibles en façade</option><option value="1"${c.tin?' selected':''}>derrière les portes</option></select></label>`:''}
        ${showT&&(c.nt||0)>0?`${!cl&&c.type==='etag'&&(c.dp||0)>0&&!c.tin?`<label class="f">Tiroirs placés<select data-i="${i}" data-f="tpos" id="ctp${i}"><option value="haut"${tp==='haut'?' selected':''}>en haut</option><option value="bas"${tp==='bas'?' selected':''}>en bas</option></select></label>`:''}
@@ -1170,11 +1183,12 @@ $('#form').addEventListener('input',e=>{
     else if(t.dataset.f==='sp'||t.dataset.f==='th')c[t.dataset.f]=t.value;
     else if(t.dataset.f==='thk'){const a=String(c.th||'').split(/[;,\s]+/).filter(Boolean);while(a.length<(c.nt||0))a.push('auto');a[+t.dataset.k]=parseFloat(t.value)>0?String(parseFloat(t.value)):'auto';c.th=a.slice(0,c.nt).join(', ');}
     else if(t.dataset.f==='dp'){c.dp=+t.value;renderComps();}
+    else if(t.dataset.f==='cut'){c.cut=+t.value;renderComps();}
     else if(t.dataset.f==='tpos')c.tpos=t.value;
     else if(t.dataset.f==='tin'){c.tin=!!t.value;renderComps();}
     else if(t.dataset.f==='nt'){const was=c.nt||0;c.nt=Math.max(0,Math.min(6,parseInt(t.value)||0));if(was!==c.nt){renderComps();const f=document.getElementById('cnt'+t.dataset.i);if(f){f.focus();f.select&&f.select();}}}
     else if(t.dataset.f==='hp'||t.dataset.f==='hc'||t.dataset.f==='w'||t.dataset.f==='split')c[t.dataset.f]=Math.max(0,parseFloat(t.value)||0);
-    else{const was=c.n;c.n=Math.max(0,Math.min(12,parseInt(t.value)||0));if((was>0)!==(c.n>0)){renderComps();const f=document.getElementById('cn'+t.dataset.i);if(f){f.focus();}}}}
+    else{const was=c.n;c.n=Math.max(0,Math.min(12,parseInt(t.value)||0));if(was!==c.n&&c.cut>c.n)c.cut=c.n;if((was>0)!==(c.n>0)||(was!==c.n&&(c.dp||0)>0&&c.type==='etag')){renderComps();const f=document.getElementById('cn'+t.dataset.i);if(f){f.focus();}}}}
   render();
 });
 $('#form').addEventListener('change',e=>{if(e.target.tagName==='SELECT'||e.target.type==='checkbox')render();});
