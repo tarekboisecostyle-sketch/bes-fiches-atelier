@@ -1259,7 +1259,10 @@ function kitLayout(res){
   const fb=res.findIndex(rm=>rm.m.row==='bas'&&!rm.panel);let xh=fb>=0?pos[fb].x:0;
   res.forEach((rm,i)=>{if(rm.m.anchor)return;if(rm.m.row==='haut'){const x=rm.m.x??xh;pos[i]={rm,x,y:rm.m.y??kh,...sz(rm)};xh=x+sz(rm).w;}});
   for(let pass=0;pass<res.length;pass++)res.forEach((rm,i)=>{const a=rm.m.anchor;if(!a)return;const j=res.findIndex(r=>r.m.id===a.to);const t=j>=0?pos[j]:null;
-    if(!t)return;const floor=!rm.panel&&rm.m.base!=='aucun'&&rm.m.row!=='haut';pos[i]={rm,x:a.side==='up'?t.x:t.x+t.w,y:a.side==='up'?t.y+t.h:(floor?0:t.y),...sz(rm)};});
+    if(!t)return;const floor=!rm.panel&&rm.m.base!=='aucun'&&rm.m.row!=='haut';
+    /* un caisson HAUT « posé sur » un caisson bas se place à la hauteur des hauts (dessous des hauts), aligné sur le bas */
+    const upY=(!rm.panel&&rm.m.row==='haut'&&t.rm.m.row!=='haut')?Math.max(kh,t.y+t.h):t.y+t.h;
+    pos[i]={rm,x:a.side==='up'?t.x:t.x+t.w,y:a.side==='up'?upY:(floor?0:t.y),...sz(rm)};});
   res.forEach((rm,i)=>{if(!pos[i])pos[i]={rm,x:0,y:0,...sz(rm)};});
   return pos;}
 function kitchenSVG(res,W=1000,lang=LANG,sel=true){
