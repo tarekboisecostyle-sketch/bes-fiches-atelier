@@ -425,6 +425,7 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
             <select id="inRow"><option value="bas">Bas</option><option value="haut">Haut</option><option value="col">Colonne</option></select>
           </label>
           <label class="f">Dessous des hauts (depuis le sol)<span class="unit"><input id="kHaut" type="number" step="10" value="1450"></span></label>
+          <label class="f" style="grid-column:1/-1;display:flex;align-items:center;gap:.5em"><input id="kGlue" type="checkbox" checked style="width:auto;margin:0"> Coller les caissons entre eux (vide ≤ 100 mm refermé, chevauchement repoussé)</label>
           <label class="f" style="grid-column:1/-1">Position de l'élément sélectionné
             <select id="inPos"></select>
           </label>
@@ -1253,16 +1254,26 @@ function renderKitList(){fillPos();$('#kitList').innerHTML=KIT.mods.map((m,i)=>{
   return `<div class="krow" data-k="${i}" aria-current="${i===KIT.cur}"><b>${esc(m.rep)}</b><span>${isPanel(m)?TYPE_LB[m.type]:(m.type==='placard'?'Placard':rowLb(m.row,'fr'))} · ${fmt(m.type==='joue'?m.P:m.L)} × ${fmt(m.type==='tablette'?m.P:m.H)}${rm&&!rm.panel?' · '+modSummary(rm):''}${m.q>1?' · ×'+m.q:''}</span>
   <span class="ka"><button type="button" data-ka="up" title="Monter" aria-label="Monter ${esc(m.rep)}">↑</button><button type="button" data-ka="dup" title="Dupliquer" aria-label="Dupliquer ${esc(m.rep)}">⧉</button>${KIT.mods.length>1?`<button type="button" data-ka="del" title="Supprimer" aria-label="Supprimer ${esc(m.rep)}">✕</button>`:''}</span></div>`;}).join('');}
 function kitLayout(res){
-  const kh=v('kHaut')||1450,pos=[];let xb=0;
+  const kh=v('kHaut')||1450,pos=[],TOL=100,glue=!$('#kGlue')||$('#kGlue').checked;let xb=0;
   const sz=rm=>({w:rm.ew??rm.m.L,h:rm.eh??rm.m.H});
   res.forEach((rm,i)=>{if(rm.m.anchor)return;if(rm.m.row!=='haut'){const x=rm.m.x??xb;pos[i]={rm,x,y:rm.m.y??0,...sz(rm)};if(rm.m.x==null||rm.m.y==null||rm.m.y===0)xb=Math.max(xb,x+sz(rm).w);}});
   const fb=res.findIndex(rm=>rm.m.row==='bas'&&!rm.panel);let xh=fb>=0?pos[fb].x:0;
   res.forEach((rm,i)=>{if(rm.m.anchor)return;if(rm.m.row==='haut'){const x=rm.m.x??xh;pos[i]={rm,x,y:rm.m.y??kh,...sz(rm)};xh=x+sz(rm).w;}});
-  for(let pass=0;pass<res.length;pass++)res.forEach((rm,i)=>{const a=rm.m.anchor;if(!a)return;const j=res.findIndex(r=>r.m.id===a.to);const t=j>=0?pos[j]:null;
+  const ov={};/* X corrigés par le collage automatique */
+  const anchors=()=>{for(let pass=0;pass<res.length;pass++)res.forEach((rm,i)=>{const a=rm.m.anchor;if(!a)return;const j=res.findIndex(r=>r.m.id===a.to);const t=j>=0?pos[j]:null;
     if(!t)return;const floor=!rm.panel&&rm.m.base!=='aucun'&&rm.m.row!=='haut';
     /* un caisson HAUT « posé sur » un caisson bas se place à la hauteur des hauts (dessous des hauts), aligné sur le bas */
     const upY=(!rm.panel&&rm.m.row==='haut'&&t.rm.m.row!=='haut')?Math.max(kh,t.y+t.h):t.y+t.h;
-    pos[i]={rm,x:a.side==='up'?t.x:t.x+t.w,y:a.side==='up'?upY:(floor?0:t.y),...sz(rm)};});
+    pos[i]={rm,x:ov[i]??(a.side==='up'?t.x:t.x+t.w),y:a.side==='up'?upY:(floor?0:t.y),...sz(rm)};});};
+  /* collage : dans une même rangée, un petit vide (≤ 100 mm) est refermé et un chevauchement est repoussé.
+     Les éléments en position « Libre » ne bougent jamais. */
+  const snap=list=>{list.sort((p,q)=>p.x-q.x||p.i-q.i);let e=null;list.forEach(p=>{const libre=p.rm.m.x!=null&&!p.rm.m.anchor;
+    if(e!=null&&!libre){const gap=p.x-e;if(gap<0||(gap>0&&gap<=TOL)){p.x=e;ov[p.i]=e;pos[p.i].x=e;}}e=e==null?p.x+p.w:Math.max(e,p.x+p.w);});};
+  anchors();
+  if(glue){
+    snap(pos.map((p,i)=>p&&{...p,i}).filter(p=>p&&p.y===0&&p.rm.m.row!=='haut'));anchors();
+    const hs=pos.map((p,i)=>p&&{...p,i}).filter(p=>p&&p.rm.m.row==='haut'&&!p.rm.panel),ys=[...new Set(hs.map(p=>Math.round(p.y)))];
+    ys.forEach(y=>snap(hs.filter(p=>Math.round(p.y)===y)));anchors();}
   res.forEach((rm,i)=>{if(!pos[i])pos[i]={rm,x:0,y:0,...sz(rm)};});
   return pos;}
 function kitchenSVG(res,W=1000,lang=LANG,sel=true){
