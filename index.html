@@ -247,6 +247,10 @@ body.starting .wrap>section:not(#startScreen){display:none}
 .relban{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;background:var(--accent-soft);border-left:4px solid var(--mark);padding:10px 14px;margin-bottom:14px}
 .relban b{font-family:var(--f-display);font-size:17px}
 .relban a{color:var(--accent);font-weight:600}
+.relban .zbw{flex:1 1 100%;display:grid;gap:6px;border-top:1px solid var(--line);padding-top:8px}
+.relban .zbl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-family:var(--f-mono);font-size:13px}
+.relban .zbl b{font-family:var(--f-body);font-size:13px;min-width:120px}
+.zb{font:600 12px var(--f-body);padding:2px 8px}.zb.ok{background:var(--ok);color:#fff}.zb.warn{background:var(--mark);color:#1a1400}.zb.err{background:var(--warn);color:#fff}
 .st-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
 .st-type{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:12px;cursor:pointer;display:grid;gap:4px;font:inherit}
 .st-type b{font:600 17px var(--f-display);letter-spacing:.02em}
@@ -369,7 +373,7 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
     </div>
     <div class="st-card wide">
       <div class="rl-h" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h2>Depuis un relevé de chantier</h2><a class="btn" href="releve/?new=1">+ Nouveau relevé</a></div>
-      <p class="hint" style="margin:0">Choisissez un produit relevé sur place : la fiche se crée avec le chantier et les mesures déjà remplies. Si sa fiche existe déjà, elle s'ouvre.</p>
+      <p class="hint" style="margin:0">Choisissez une zone relevée sur place : la fiche se crée avec le chantier et la longueur de la zone. Vous la détaillez (caissons bas, hauts, colonnes, vides) et la fiche vérifie que le total retombe sur la mesure relevée. Si sa fiche existe déjà, elle s'ouvre.</p>
       <p class="hint" id="rlState"></p>
       <div id="rlList"></div>
     </div>
@@ -1067,7 +1071,7 @@ function renderComps(){
        </div>`;})()}
      <span class="hint" id="cinfo${i}"></span></td></tr>`).join('');
 }
-function render(){
+function render(){queueMicrotask(()=>{try{updRelBanner();}catch(e){}});
   read(); let r;
   if(KIT){snapModule();KIT.res=KIT.mods.map(computeModule);r=KIT.res[KIT.cur];}else r=compute();
   last=r;
@@ -1474,7 +1478,7 @@ $('#photoIn').addEventListener('change',e=>{const f=e.target.files[0];if(!f)retu
 const RL_KEY='bes_releves';
 const relStore=()=>lsGet(RL_KEY)||{};
 const relMM=(v,u)=>{const n=parseFloat(String(v??'').replace(',','.'));return n>0?Math.round(u==='m'?n*1000:n*10):null;};
-const relTypeLb={placard:'Placard',cuisine:'Cuisine',bas:'Caisson bas',haut:'Caisson haut',colonne:'Colonne',vide:'Espace vide',tv:'Meuble TV',meuble:'Meuble',autre:'Autre'};
+const relTypeLb={sdb:'Salle de bain',bureau:'Bureau',placard:'Placard',cuisine:'Cuisine',bas:'Caisson bas',haut:'Caisson haut',colonne:'Colonne',vide:'Espace vide',tv:'Meuble TV',meuble:'Meuble',autre:'Autre'};
 async function relGet(id){const loc=relStore()[id];
   if(loc&&!loc.synced)return loc.data;
   if(clOn()){try{const r=await clReq(`releves?id=eq.${encodeURIComponent(id)}&select=data`);if(r&&r[0])return r[0].data;}catch(e){}}
@@ -1488,18 +1492,17 @@ async function renderRelList(){$('#rlState').textContent='Chargement des relevé
   $('#rlState').innerHTML=cloudOk?'':'<span class="st-warn">Cloud injoignable : seuls les relevés de cet appareil sont affichés.</span>';
   $('#rlList').innerHTML=list.length?list.map(r=>{const d=r.data||{},m=d.meta||{},ps=d.produits||[];
     return `<div class="rl-rel"><div class="rl-h"><div><b>${esc(m.chantier||'Chantier sans nom')}</b>${m.client?' · '+esc(m.client):''} <small>${esc(m.date||'')}${r.cloud?'':' · sur cet appareil'}</small></div><a href="releve/?id=${encodeURIComponent(r.id)}">Voir / modifier le croquis</a></div>
-      ${(d.facades||[]).filter(f=>f.elements&&f.elements.length).length?`<div class="rl-prods">${d.facades.filter(f=>f.elements&&f.elements.length).map(f=>`<button type="button" class="fac" data-rlf="${esc(r.id)}" data-key="${esc(f.piece+':'+f.mur)}"><b>${esc(f.mur)}</b>Façade · ${esc(f.nom)}<small>${f.elements.length} élément(s) · mur ${f.longueur} cm${(f.ouvertures||[]).length?' · '+f.ouvertures.length+' ouverture(s)':''}</small></button>`).join('')}</div>`:''}
-      <div class="rl-prods">${ps.length?ps.map((p,i)=>`<button type="button" data-rl="${esc(r.id)}" data-i="${i}"><b>${p.n}</b>${esc(p.nom||'Produit')}<small>${relTypeLb[p.type]||''} · ${[p.w,p.h,p.d].filter(x=>x).join(' × ')} ${esc(p.unit||'cm')}${+p.qty>1?' · ×'+esc(p.qty):''}</small></button>`).join(''):'<span class="hint">Aucun produit posé sur ce croquis (outil « Produit »).</span>'}</div></div>`;}).join('')
+            <div class="rl-prods">${ps.length?ps.map((p,i)=>`<button type="button" data-rl="${esc(r.id)}" data-i="${i}"><b>${p.n}</b>${esc(p.nom||'Zone')}<small>${p.espace?esc(p.espace)+(p.mur?' · mur '+esc(p.mur):'')+' · ':''}${relTypeLb[p.type]||''} · ${[p.w,p.h,p.d].filter(x=>x).join(' × ')} ${esc(p.unit||'cm')}${+p.qty>1?' · ×'+esc(p.qty):''}</small></button>`).join(''):'<span class="hint">Aucun produit posé sur ce croquis (outil « Produit »).</span>'}</div></div>`;}).join('')
     :'<p class="hint">Aucun relevé pour l\'instant. Le commercial le crée avec « Nouveau relevé ».</p>';}
 $('#rlList').addEventListener('click',async e=>{const f=e.target.closest('[data-rlf]');if(f){f.disabled=true;try{await ficheFromFacade(f.dataset.rlf,f.dataset.key);}catch(err){$('#rlState').innerHTML=`<span class="st-warn">${esc(err.message)}</span>`;f.disabled=false;}return;}
   const b=e.target.closest('[data-rl]');if(!b)return;b.disabled=true;
   try{await ficheFromReleve(b.dataset.rl,+b.dataset.i);}catch(err){$('#rlState').innerHTML=`<span class="st-warn">${esc(err.message)}</span>`;b.disabled=false;}});
 async function ficheFromReleve(id,i){const d=await relGet(id);if(!d)throw new Error('Relevé introuvable (ni sur cet appareil ni dans le cloud).');
   const m=d.meta||{},p=(d.produits||[])[i];if(!p)throw new Error('Ce produit n\'existe plus dans le relevé.');
-  const u=p.unit||m.unit||'cm',type={placard:'placard',cuisine:'cuisine',bas:'cuisine',haut:'cuisine',colonne:'cuisine',vide:'cuisine',tv:'tv',meuble:'meuble'}[p.type]||'meuble';
-  const ch=m.chantier||'Chantier',name=`${ch} · ${p.nom||relTypeLb[p.type]||'produit '+p.n}`;
-  const L=relMM(p.w,u),hp=relMM(m.hp,u),H=relMM(p.h,u)||(type==='placard'?hp:null),P=relMM(p.d,u),Q=parseInt(p.qty)||1;
-  const link=JSON.stringify({id,i,n:p.n,nom:p.nom||'',type:p.type||'',L,H,P,Q,hp,chantier:ch});
+  const u=p.unit||m.unit||'cm',type={sdb:'meuble',bureau:'meuble',placard:'placard',cuisine:'cuisine',bas:'cuisine',haut:'cuisine',colonne:'cuisine',vide:'cuisine',tv:'tv',meuble:'meuble'}[p.type]||'meuble';
+  const ch=m.chantier||'Chantier',zn=p.nom||relTypeLb[p.type]||'zone '+p.n,name=`${ch} · ${p.espace&&p.espace.toLowerCase()!==zn.toLowerCase()?p.espace+' · ':''}${zn}`;
+  const L=relMM(p.w,u),hp=relMM(p.hp,u)||relMM(m.hp,u),H=relMM(p.h,u)||(type==='placard'?hp:null),P=relMM(p.d,u),Q=parseInt(p.qty)||1;
+  const link=JSON.stringify({id,i,n:p.n,nom:p.nom||'',type:p.type||'',L,H,P,Q,hp,chantier:ch,espace:p.espace||'',mur:p.mur||''});
   // la fiche existe déjà : on l'ouvre
   const loc=pjList().find(x=>x.name===name);
   if(loc){applyState(loc.state);$('#pjName').value=name;enterWork();pjMsg(`Fiche « ${name} » déjà existante : ouverte.`);return;}
@@ -1511,6 +1514,12 @@ async function ficheFromReleve(id,i){const d=await relGet(id);if(!d)throw new Er
   $('#inReleve').value=link;render();enterWork();$('#pjSave').click();
   pjMsg(type==='placard'?`Fiche créée depuis le relevé : ${L||'?'} × ${H||'?'} × ${P||'?'} mm. Vérifiez compartiments, portes et étagères.`
     :`Fiche créée depuis le relevé. Mesures relevées : ${[L,H,P].map(x=>x||'?').join(' × ')} mm. Placez les caissons dans cet espace.`);}
+$('#relBanner').addEventListener('click',e=>{const b=e.target.closest('[data-zb]');if(!b||!KIT)return;let r=null;try{r=JSON.parse($('#inReleve').value);}catch(x){}if(!r)return;
+  const [row,what]=b.dataset.zb.split(':'),mods=KIT.mods.filter(m=>!isPanel(m)||m.type==='vide'),arr=mods.filter(m=>row==='haut'?m.row==='haut':m.row!=='haut');
+  const rest=r.L-arr.reduce((t,m)=>t+(+m.L||0)*(+m.q||1),0);if(!(rest>0))return;
+  const k=what==='v'?(row==='haut'?'vide-haut':'vide-bas'):(row==='haut'?'haut':'bas-porte');const md=mkMod(k,{L:rest});md.k=k;
+  if(KIT.mode==='cuisine'&&what==='c'&&row!=='haut'&&r.P)md.P=Math.min(md.P,r.P);
+  md.rep=nextRep(md);KIT.mods.push(md);loadModule(KIT.mods.length-1);pjMsg(`${md.rep} ajouté : ${rest} mm. Réglez-le dans la barre des produits.`);});
 const FAC_KIND={bas:'bas-porte',cuisine:'bas-porte',haut:'haut',colonne:'col',vide:'vide-bas',placard:'placard',tv:'tv-susp',meuble:'bas-porte',autre:'panneau'};
 async function ficheFromFacade(id,key){const d=await relGet(id);if(!d)throw new Error('Relevé introuvable (ni sur cet appareil ni dans le cloud).');
   const m=d.meta||{},f=(d.facades||[]).find(x=>x.piece+':'+x.mur===key);if(!f||!(f.elements||[]).length)throw new Error('Cette façade n\'a plus d\'élément dans le relevé.');
@@ -1533,11 +1542,21 @@ async function ficheFromFacade(id,key){const d=await relGet(id);if(!d)throw new 
   $('#inChantier').value=ch;$('#pjName').value=name;$('#inReleve').value=link;
   loadModule(0);enterWork();$('#pjSave').click();
   pjMsg(`Façade mur ${f.mur} importée : ${f.elements.length} élément(s) placés à leur position le long du mur (${mm(f.longueur)} mm). Les portes et fenêtres sont des espaces vides repérés VD. Réglez maintenant chaque caisson.`);}
+/* contrôle : la somme des éléments de la zone doit retomber sur la longueur relevée */
+function zoneBudget(r){if(!KIT||!r||!(r.L>0)||KIT.mods.length<1)return '';const mods=KIT.mods.filter(m=>!isPanel(m)||m.type==='vide');
+  if(KIT.mode==='placard'&&mods.length===1)return '';
+  const sum=a=>a.reduce((t,m)=>t+(+m.L||0)*(+m.q||1),0),bas=mods.filter(m=>m.row!=='haut'),haut=mods.filter(m=>m.row==='haut');
+  const line=(lb,arr,row)=>{if(!arr.length&&row==='haut')return '';const t=sum(arr),rest=r.L-t;
+    const st=rest===0?'<span class="zb ok">✓ complet</span>':rest>0?`<span class="zb warn">reste ${rest} mm</span>`:`<span class="zb err">dépasse de ${-rest} mm</span>`;
+    const btn=rest>0?`<button type="button" class="btn" data-zb="${row}:c">+ ${row==='haut'?'caisson haut':'caisson bas'} de ${rest}</button><button type="button" class="btn" data-zb="${row}:v">+ espace vide de ${rest}</button>`:'';
+    return `<div class="zbl"><b>${lb}</b> ${t} / ${r.L} mm ${st} ${btn}</div>`;};
+  return `<div class="zbw">${line('Bas et colonnes',bas,'bas')}${line('Hauts',haut,'haut')}</div>`;}
 function updRelBanner(){const el=$('#relBanner');let r=null;try{r=JSON.parse($('#inReleve').value||'null');}catch(e){}
   if(!r||document.body.classList.contains('starting')){el.hidden=true;return;}
   if(r.facade){el.hidden=false;el.innerHTML=`<span>Relevé · façade</span><b>Mur ${esc(r.mur)} · ${esc(r.nom||'')}</b><span class="muted">${r.n} élément(s) · mur ${r.longueur||'?'} mm${r.hp?' · plafond '+r.hp+' mm':''}</span><a href="releve/?id=${encodeURIComponent(r.id)}">Voir le croquis →</a>`;return;}
   const dims=[['L',r.L],['H',r.H],['P',r.P]].filter(x=>x[1]).map(x=>`${x[0]} ${x[1]}`).join(' × ');
-  el.hidden=false;el.innerHTML=`<span>Relevé de chantier</span><b>${esc(r.n+' · '+(r.nom||relTypeLb[r.type]||'produit'))}</b><span class="muted">${dims?dims+' mm':'sans mesures'}${r.Q>1?' · ×'+r.Q:''}${r.hp?' · plafond '+r.hp+' mm':''}</span><a href="releve/?id=${encodeURIComponent(r.id)}">Voir le croquis →</a>`;}
+  const bud=zoneBudget(r);
+  el.hidden=false;el.innerHTML=`<span>Relevé · zone</span><b>${esc(r.n+' · '+(r.nom||relTypeLb[r.type]||'zone'))}</b><span class="muted">${r.espace?esc(r.espace)+(r.mur?' · mur '+esc(r.mur):'')+' · ':''}${dims?dims+' mm':'sans mesures'}${r.Q>1?' · ×'+r.Q:''}${r.hp?' · plafond '+r.hp+' mm':''}</span><a href="releve/?id=${encodeURIComponent(r.id)}">Voir le croquis →</a>${bud}`;}
 
 /* ---------- écran de démarrage ---------- */
 let ST_TYPE=null;

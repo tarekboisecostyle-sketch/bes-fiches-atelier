@@ -72,6 +72,28 @@
   .hint{position:absolute;left:12px;bottom:12px;background:rgba(27,58,92,.85);color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:16;}
   .hint.show{opacity:1;}
   a.brand{color:#fff;text-decoration:none}
+  .tool{position:relative}.tool .stp{position:absolute;top:3px;left:5px;font:800 10px/1 -apple-system,Segoe UI,sans-serif;font-style:normal;color:#3a2c00;background:var(--amber);border-radius:6px;padding:2px 4px}
+  .tool.step{background:#fff8e3}.tool.more span{color:#6b7a90}
+  .rail-h{font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a97a8;margin-top:4px}
+  #moreTools{display:flex;flex-direction:column;gap:6px;align-items:center}#moreTools[hidden]{display:none}
+  .adv{display:contents}.adv[hidden]{display:none}
+  .side{flex:0 0 310px;background:var(--white);border-left:1px solid var(--line);overflow-y:auto;padding:14px 14px 30px;font-size:13px}
+  .side.closed{display:none}
+  .side h4{margin:0 0 4px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#6b7a90}
+  .side .steps{display:grid;gap:8px;margin:6px 0 14px}
+  .side .steps div{display:flex;gap:9px;align-items:flex-start;background:var(--surface);border-radius:10px;padding:9px 10px;line-height:1.35}
+  .side .steps div.done{background:#e8f3ea;color:#2f6b3a}.side .steps div.now{background:#fff8e3;box-shadow:inset 0 0 0 2px var(--amber)}
+  .side .steps b{flex:0 0 22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--navy);color:#fff;font-size:12px}
+  .side .sp{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+  .side .sp-h{background:var(--navy);color:#fff;padding:9px 11px}.side .sp-h b{font-size:14.5px}.side .sp-h small{display:block;opacity:.8;font-size:11.5px;margin-top:2px}
+  .side .zn{display:flex;gap:9px;align-items:center;padding:9px 11px;border-top:1px solid var(--line)}
+  .side .zn .nb{flex:0 0 24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12px}
+  .side .zn .tx{flex:1 1 auto;min-width:0}.side .zn .tx b{display:block;font-size:13.5px}.side .zn .tx small{color:#6b7a90}
+  .side .zn .wl{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:var(--amber);color:var(--navy-dark);font-size:10px;font-weight:800;margin-right:3px}
+  .side .zn button{border:0;background:var(--amber);color:#3a2c00;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .side .ops{padding:7px 11px;border-top:1px solid var(--line);color:#6b7a90;font-size:12px}
+  .side .empty{padding:10px 11px;color:#8a97a8;border-top:1px solid var(--line)}
+  @media (max-width:900px){.side{position:absolute;right:0;top:0;bottom:0;width:min(320px,86vw);z-index:30;box-shadow:-8px 0 24px rgba(0,0,0,.15)}.stage{position:relative}}
   .field.hp input{width:64px}
   .sync{font-size:11.5px;font-weight:600;padding:5px 9px;border-radius:20px;background:rgba(255,255,255,.14);white-space:nowrap}
   .sync.ok{background:#2f6b3a}.sync.wait{background:#8a6d00}.sync.err{background:#b3261e}
@@ -113,31 +135,33 @@
 
   <div class="stage">
     <div class="rail" id="rail">
-      <div class="tool" data-tool="select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l7 17 2.5-6.5L21 11z"/></svg><span>Sélect.</span></div>
+      <div class="tool active" data-tool="select"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l7 17 2.5-6.5L21 11z"/></svg><span>Sélect.</span></div>
       <div class="tool" data-tool="pan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg><span>Vue</span></div>
+      <div class="rail-h">Relevé</div>
+      <div class="tool step" data-tool="room"><i class="stp">1</i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18v14H3z"/><path d="M3 9h3M18 5v3"/><path d="M7 19a4 4 0 0 0-4-4"/></svg><span>Espace</span></div>
+      <div class="tool step" data-tool="product"><i class="stp">2</i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h9l7 7-9 9-7-7z"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/></svg><span>Zone</span></div>
+      <div class="tool step" data-tool="open"><i class="stp">3</i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h4M17 20h4"/><path d="M7 20V8"/><path d="M7 8a12 12 0 0 1 10 12" stroke-dasharray="3 2"/></svg><span>Porte / Fen.</span></div>
       <div class="sep"></div>
-      <div class="tool" data-tool="scale"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h18v8H3z"/><path d="M7 8v3M11 8v5M15 8v3M19 8v5"/></svg><span>Échelle</span></div>
-      <div class="tool" data-tool="pen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l4-1L20 7a2 2 0 0 0-3-3L5 16z"/></svg><span>Crayon</span></div>
-      <div class="tool" data-tool="line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19L19 5"/></svg><span>Ligne</span></div>
-      <div class="tool" data-tool="room"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18v14H3z"/><path d="M3 9h3M18 5v3"/><path d="M7 19a4 4 0 0 0-4-4"/></svg><span>Pièce</span></div>
-      <div class="tool" data-tool="open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20h4M17 20h4"/><path d="M7 20V8"/><path d="M7 8a12 12 0 0 1 10 12" stroke-dasharray="3 2"/></svg><span>Porte/Fen.</span></div>
+      <div class="tool" data-tool="dim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8v8M21 8v8M3 12h18"/></svg><span>Cote</span></div>
+      <div class="tool" data-tool="text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 6h14M12 6v13"/></svg><span>Note</span></div>
+      <div class="tool more" id="btnMore"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg><span>Plus</span></div>
+      <div id="moreTools" hidden>
       <div class="tool" data-tool="rect"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="16" height="12"/></svg><span>Mur/Box</span></div>
-      <div class="tool active" data-tool="dim"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8v8M21 8v8M3 12h18"/></svg><span>Cote</span></div>
-      <div class="tool" data-tool="product"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h9l7 7-9 9-7-7z"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/></svg><span>Produit</span></div>
-      <div class="tool" data-tool="text"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 6h14M12 6v13"/></svg><span>Texte</span></div>
-      <div class="sep"></div>
+      <div class="tool" data-tool="line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 19L19 5"/></svg><span>Ligne</span></div>
+      <div class="tool" data-tool="pen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l4-1L20 7a2 2 0 0 0-3-3L5 16z"/></svg><span>Crayon</span></div>
+      <div class="tool" data-tool="scale"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h18v8H3z"/><path d="M7 8v3M11 8v5M15 8v3M19 8v5"/></svg><span>Échelle</span></div>
       <div class="tool" data-tool="erase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15l7-7 6 6-4 4H8z"/><path d="M14 20h6"/></svg><span>Gomme</span></div>
+      </div>
     </div>
 
     <div class="canvas-col">
       <div class="canvas-wrap" id="wrap">
         <canvas id="cv"></canvas>
         <div class="scalebar" id="scalebar"></div>
-        <div class="legend" id="legend"></div>
         <div class="ctxbar" id="ctxbar">
           <button data-a="fix" title="Corriger la forme">✦</button>
           <button data-a="rot" title="Tourner d'un quart de tour">↻</button>
-          <button data-a="conv" title="Transformer en produit (caisson, placard…)">🏷</button>
+          <button data-a="conv" title="Transformer en zone de produit">🏷</button>
           <button data-a="edit" title="Modifier">✎</button>
           <button data-a="dup" title="Dupliquer">⧉</button>
           <button data-a="del" class="del" title="Supprimer">🗑</button>
@@ -146,6 +170,8 @@
       </div>
 
       <div class="bottombar">
+        <button class="mini" id="btnAdv" title="Réglages du dessin (couleur, trait, unité, aides)">⚙<span class="cnt">Réglages</span></button>
+        <div class="adv" id="advBar" hidden>
         <div class="group" id="colors"><span class="lbl">Couleur</span></div>
         <div class="group" id="widths"><span class="lbl">Trait</span></div>
         <div class="group"><span class="lbl">Unité</span>
@@ -157,12 +183,13 @@
           <button class="mini on" id="tShape" title="Forme auto (redresse les croquis)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8z"/><path d="M18 15l.9 2.1L21 18l-2.1.9L18 21l-.9-2.1L15 18l2.1-.9z"/></svg></button>
           <button class="mini" id="tAutoCote" title="Cotes auto (ajoute les mesures calculées)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8v8M21 8v8M3 12h18"/></svg></button>
         </div>
+        </div>
         <div class="group">
           <button class="mini" id="btnZoomOut" title="Dézoomer">−</button>
           <button class="mini" id="zoomLabel" title="Zoom 100%">100%</button>
           <button class="mini" id="btnZoomIn" title="Zoomer">+</button>
           <button class="mini" id="btnFit" title="Recadrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H4v4M16 3h4v4M8 21H4v-4M16 21h4v-4"/></svg></button>
-          <button class="mini" id="btnLegend" title="Liste des produits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span class="cnt" id="legendCnt">0</span></button>
+          <button class="mini" id="btnLegend" title="Afficher / masquer la liste des espaces et zones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span class="cnt" id="legendCnt">0</span></button>
           <button class="mini" id="btnGrid" title="Grille"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg></button>
         </div>
         <div class="spacer"></div>
@@ -173,6 +200,7 @@
         </div>
       </div>
     </div>
+    <aside class="side" id="legend" aria-label="Espaces et zones"></aside>
   </div>
 </div>
 
@@ -200,12 +228,15 @@
 
 <div class="overlay" id="rovl">
   <div class="modal pmodal">
-    <h3>Pièce</h3>
-    <label>Nom de la pièce (facultatif)</label>
-    <input id="rName" placeholder="Cuisine, chambre parents…" autocomplete="off">
+    <h3>1 · Espace (la pièce)</h3>
+    <label>Type d'espace</label>
+    <select id="rType"><option>Cuisine</option><option>Chambre</option><option>Salle de bain</option><option>Salon</option><option>Bureau</option><option>Dressing</option><option>Entrée / couloir</option><option>Autre</option></select>
+    <label>Nom (facultatif)</label>
+    <input id="rName" placeholder="ex. Chambre parents" autocomplete="off">
     <div class="prow">
-      <div><label>Longueur</label><input id="rL" inputmode="decimal" placeholder="ex. 463"></div>
-      <div><label>Largeur</label><input id="rW" inputmode="decimal" placeholder="ex. 290"></div>
+      <div><label>Longueur</label><input id="rL" inputmode="decimal" placeholder="ex. 300"></div>
+      <div><label>Largeur</label><input id="rW" inputmode="decimal" placeholder="ex. 200"></div>
+      <div><label>H. plafond</label><input id="rHp" inputmode="decimal" placeholder="—"></div>
     </div>
     <div class="unitnote" id="rUnitNote" style="font-size:11px;color:#8a97a8;margin-top:8px;text-align:right">Dimensions en cm</div>
     <div class="buttons"><button class="cancel" id="rCancel">Annuler</button><button class="ok" id="rOk">Dessiner</button></div>
@@ -214,30 +245,27 @@
 
 <div class="overlay" id="povl">
   <div class="modal pmodal">
-    <h3>Produit</h3>
-    <label>Nom du produit</label>
-    <input id="pName" placeholder="Placard chambre parents" autocomplete="off">
-    <label>Type (pour la fiche atelier)</label>
+    <h3>2 · Zone de produit</h3>
+    <label>Produit prévu dans cette zone</label>
     <select id="pType">
-      <optgroup label="Cuisine">
-      <option value="bas">Caisson bas</option>
-      <option value="haut">Caisson haut (mural)</option>
-      <option value="colonne">Colonne (four, frigo encastré…)</option>
-      <option value="vide">Espace vide (frigo, lave-vaisselle, passage…)</option>
-      <option value="cuisine">Cuisine complète (un seul bloc)</option></optgroup>
-      <optgroup label="Autres produits">
+      <option value="cuisine">Cuisine</option>
       <option value="placard">Placard / dressing</option>
-      <option value="tv">Meuble TV / étagères</option>
+      <option value="tv">Meuble TV / bibliothèque</option>
+      <option value="sdb">Meuble salle de bain</option>
+      <option value="bureau">Bureau</option>
       <option value="meuble">Meuble sur mesure</option>
-      <option value="autre">Autre (habillage…)</option></optgroup>
+      <option value="autre">Autre (habillage, tête de lit…)</option>
+      <optgroup label="Anciens relevés"><option value="bas">Caisson bas</option><option value="haut">Caisson haut</option><option value="colonne">Colonne</option><option value="vide">Espace vide</option></optgroup>
     </select>
+    <label>Nom (facultatif)</label>
+    <input id="pName" placeholder="ex. Cuisine mur évier" autocomplete="off">
     <div class="prow">
-      <div><label>Largeur</label><input id="pW" inputmode="decimal" placeholder="—"></div>
+      <div><label>Longueur</label><input id="pW" inputmode="decimal" placeholder="le long du mur"></div>
+      <div><label>Profondeur</label><input id="pD" inputmode="decimal" placeholder="auto"></div>
       <div><label>Hauteur</label><input id="pH" inputmode="decimal" placeholder="—"></div>
-      <div><label>Prof.</label><input id="pD" inputmode="decimal" placeholder="auto"></div>
-      <div><label>Qté</label><input id="pQ" inputmode="numeric" value="1"></div>
+      <div style="display:none"><label>Qté</label><input id="pQ" inputmode="numeric" value="1"></div>
     </div>
-    <div id="pUnitNote">Dimensions en cm · le bloc est dessiné vu de dessus : largeur × profondeur</div>
+    <div id="pUnitNote">Dimensions en cm · la zone se colle au mur touché ; le détail (caissons, colonnes, vides) se fait dans la fiche</div>
     <div class="buttons"><button class="cancel" id="pCancel">Annuler</button><button class="ok" id="pOk">Valider</button></div>
   </div>
 </div>
@@ -266,7 +294,7 @@ let W=0,H=0,DPR=1;
 
 let elements=[];
 let history=[], future=[];
-let current=null, tool='dim', color='#1b3a5c', lineW=4, unit='cm', showGrid=true, legendOn=true;
+let current=null, tool='select', color='#1b3a5c', lineW=4, unit='cm', showGrid=true, legendOn=true;
 let selected=null, drag=null;
 let scale=1, view={x:0,y:0};
 const pointers=new Map();
@@ -299,11 +327,11 @@ tgl('#tShape',()=>shapeOn,v=>shapeOn=v);
 tgl('#tAutoCote',()=>autoCoteOn,v=>autoCoteOn=v);
 
 /* tools */
-$('#rail').addEventListener('click',e=>{const t=e.target.closest('.tool');if(!t)return;tool=t.dataset.tool;
+$('#rail').addEventListener('click',e=>{const t=e.target.closest('.tool');if(!t)return;if(t.id==='btnMore'){const m=$('#moreTools');m.hidden=!m.hidden;t.classList.toggle('on',!m.hidden);return;}tool=t.dataset.tool;
   [...document.querySelectorAll('.tool')].forEach(x=>x.classList.remove('active'));t.classList.add('active');
   if(tool!=='select')selectEl(null);
   canvas.style.cursor=tool==='select'?'default':(tool==='pan'?'grab':'crosshair');
-  flash({select:'Touche un élément pour le sélectionner',pan:'Glisse pour déplacer le plan',scale:'Trace une longueur connue, puis saisis sa vraie mesure',pen:'Croquis à main levée',line:'Trace un mur/segment',rect:'Trace un rectangle',dim:'Trace puis saisis la mesure',room:'Touche le plan : saisis longueur × largeur de la pièce',open:'Touche un mur pour y poser une porte, une fenêtre ou un passage',product:'Touche un coin : le produit se pose à cet endroit, à l\'échelle',text:'Touche pour ajouter une note',erase:"Touche un élément pour l'effacer"}[tool]);});
+  flash({select:'Touche un élément pour le sélectionner',pan:'Glisse pour déplacer le plan',scale:'Trace une longueur connue, puis saisis sa vraie mesure',pen:'Croquis à main levée',line:'Trace un mur/segment',rect:'Trace un rectangle',dim:'Trace puis saisis la mesure',room:'Étape 1 : touche le plan et saisis les dimensions de l\'espace',open:'Étape 3 : touche un mur pour y poser une porte, une fenêtre ou un passage',product:'Étape 2 : touche le mur ou le coin où ira le produit',text:'Touche pour ajouter une note',erase:"Touche un élément pour l'effacer"}[tool]);});
 
 /* pose le bloc du bon côté du point touché pour qu'il reste dans la pièce */
 function placeInRoom(el,pt){const rooms=elements.filter(e=>e.type==='rect').map(e=>({x1:Math.min(e.x1,e.x2),y1:Math.min(e.y1,e.y2),x2:Math.max(e.x1,e.x2),y2:Math.max(e.y1,e.y2)}));
@@ -320,10 +348,10 @@ function placeInRoom(el,pt){const rooms=elements.filter(e=>e.type==='rect').map(
 function setToolUI(){[...document.querySelectorAll('.tool')].forEach(x=>x.classList.toggle('active',x.dataset.tool===tool));if(tool!=='select')selectEl(null);
   canvas.style.cursor=tool==='select'?'default':(tool==='pan'?'grab':'crosshair');}
 let rResolve=null;
-function askRoom(){return new Promise(res=>{rResolve=res;$('#rName').value='';$('#rL').value='';$('#rW').value='';$('#rUnitNote').textContent='Dimensions en '+unit;$('#rovl').classList.add('show');setTimeout(()=>$('#rL').focus(),50);});}
+function askRoom(){return new Promise(res=>{rResolve=res;$('#rName').value='';$('#rHp').value='';$('#rL').value='';$('#rW').value='';$('#rUnitNote').textContent='Dimensions en '+unit;$('#rovl').classList.add('show');setTimeout(()=>$('#rL').focus(),50);});}
 function closeRoom(v){$('#rovl').classList.remove('show');if(rResolve){rResolve(v);rResolve=null;}}
 $('#rCancel').onclick=()=>closeRoom(null);
-$('#rOk').onclick=()=>{const L=$('#rL').value.trim(),W=$('#rW').value.trim();if(!toCm(L)||!toCm(W)){flash('Saisis la longueur et la largeur');return;}closeRoom({L,W,name:$('#rName').value.trim()});};
+$('#rOk').onclick=()=>{const L=$('#rL').value.trim(),W=$('#rW').value.trim();if(!toCm(L)||!toCm(W)){flash('Saisis la longueur et la largeur');return;}closeRoom({L,W,type:$('#rType').value,hp:$('#rHp').value.trim(),name:$('#rName').value.trim()||$('#rType').value});};
 $('#rW').addEventListener('keydown',e=>{if(e.key==='Enter')$('#rOk').click();});
 
 /* unit */
@@ -352,8 +380,8 @@ function lenValue(px){if(!pxPerCm)return '';const cm=px/pxPerCm;return unit==='m
 /* ── accroche + angle droit ── */
 /* ── blocs produits et pièces à l'échelle ── */
 const DEF_PX=2; // échelle par défaut : 1 cm = 2 px
-const TYPE_STYLE={placard:{fill:'rgba(46,90,142,.12)',st:'#2E5A8E'},cuisine:{fill:'rgba(242,183,5,.22)',st:'#8a6d00'},bas:{fill:'rgba(242,183,5,.22)',st:'#8a6d00'},haut:{fill:'rgba(242,183,5,.08)',st:'#b45309',dash:true},colonne:{fill:'rgba(217,119,6,.28)',st:'#92400e'},vide:{fill:'rgba(255,255,255,.6)',st:'#94a3b8',dash:true},tv:{fill:'rgba(22,163,74,.13)',st:'#15803d'},meuble:{fill:'rgba(124,58,237,.12)',st:'#6d28d9'},autre:{fill:'rgba(100,116,139,.14)',st:'#475569'}};
-const DEF_DEPTH={placard:60,cuisine:60,bas:60,haut:35,colonne:60,vide:60,tv:45,meuble:50,autre:20};
+const TYPE_STYLE={placard:{fill:'rgba(46,90,142,.12)',st:'#2E5A8E'},cuisine:{fill:'rgba(242,183,5,.22)',st:'#8a6d00'},bas:{fill:'rgba(242,183,5,.22)',st:'#8a6d00'},sdb:{fill:'rgba(14,165,233,.13)',st:'#0369a1'},bureau:{fill:'rgba(100,116,139,.16)',st:'#334155'},haut:{fill:'rgba(242,183,5,.08)',st:'#b45309',dash:true},colonne:{fill:'rgba(217,119,6,.28)',st:'#92400e'},vide:{fill:'rgba(255,255,255,.6)',st:'#94a3b8',dash:true},tv:{fill:'rgba(22,163,74,.13)',st:'#15803d'},meuble:{fill:'rgba(124,58,237,.12)',st:'#6d28d9'},autre:{fill:'rgba(100,116,139,.14)',st:'#475569'}};
+const DEF_DEPTH={sdb:50,bureau:60,placard:60,cuisine:60,bas:60,haut:35,colonne:60,vide:60,tv:45,meuble:50,autre:20};
 function toCm(v){const n=parseFloat(String(v??'').replace(',','.'));if(!(n>0))return null;return unit==='m'?n*100:n;}
 function ensureScale(){if(!pxPerCm){pxPerCm=DEF_PX;flash('Échelle automatique : 1 m = '+(DEF_PX*100)+' px');}}
 function pBox(el){if(!el.box)return null;const k=pxPerCm||DEF_PX,t=el.ptype||'autre';
@@ -504,13 +532,33 @@ function productNumber(el){return productsOf().indexOf(el)+1;}
 function dimsStr(el){const parts=[el.w,el.h,el.d].map(v=>(v==null?'':(''+v).trim())).filter(v=>v!=='');let s=parts.join(' × ');if(s)s+=' '+unit;return s;}
 function productText(el){let s=el.name||'Produit';const d=dimsStr(el);if(d)s+=' — '+d;const q=+el.qty;if(q>1)s+='  ×'+el.qty;return s;}
 function escapeHtml(s){return (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
-function renderLegend(){const prods=productsOf();$('#legendCnt').textContent=prods.length;
-  const box=$('#legend');if(!prods.length||!legendOn){box.style.display='none';return;}
-  let facs=[];try{facs=computeFacades().filter(f=>f.elements.length);}catch(e){}
-  box.style.display='block';box.innerHTML='<div class="lg-head">Produits ('+prods.length+')</div>'+
-    prods.map((e,i)=>'<div class="lg-row"><b>'+(i+1)+'</b><span class="tx">'+escapeHtml(productText(e))+'<span class="ty">'+(PTYPE[e.ptype]||'')+'</span></span><button data-fiche="'+i+'" title="Créer ou ouvrir la fiche atelier de ce produit">Fiche →</button></div>').join('')+
-    (facs.length?'<div class="lg-head" style="margin-top:9px">Façades (murs) → fiche atelier</div>'+facs.map(f=>'<div class="lg-row"><b class="fl">'+f.mur+'</b><span class="tx">'+escapeHtml(f.nom)+' · '+f.elements.length+' élément(s)<span class="ty">mur '+f.longueur+' cm</span></span><button data-fac="'+escapeHtml(f.piece+':'+f.mur)+'" title="Envoyer toute la façade dans une fiche atelier">Façade →</button></div>').join(''):'');}
-const PTYPE={placard:'placard',cuisine:'cuisine',bas:'caisson bas',haut:'caisson haut',colonne:'colonne',vide:'espace vide',tv:'meuble TV',meuble:'meuble',autre:'autre'};
+/* ── panneau latéral : étapes, espaces et zones ── */
+const SIDE_LETTER={top:'A',right:'B',bottom:'C',left:'D'};
+function inRoom(r,e){const b=parentBox(r),q=pBox(e),cx=q.x+q.w/2,cy=q.y+q.h/2;return cx>b.x&&cx<b.x+b.w&&cy>b.y&&cy<b.y+b.h;}
+function renderLegend(){const prods=productsOf(),zones=prods.filter(e=>e.box);$('#legendCnt').textContent=zones.length;
+  const box=$('#legend');let rooms=[];try{rooms=roomsOf();}catch(e){}
+  const st=[[rooms.length>0,'Dessine l\'espace : outil <b style="all:unset;font-weight:700">Espace</b>, type de pièce et dimensions'],
+    [zones.length>0,'Pose les zones de produit le long des murs : longueur et profondeur'],
+    [false,'Touche « Détailler » : la fiche atelier s\'ouvre pour placer caissons, colonnes et vides']];
+  const now=st.findIndex(x=>!x[0]);
+  let h='<h4>Les 3 étapes</h4><div class="steps">'+st.map((x,i)=>'<div class="'+(x[0]?'done':i===now?'now':'')+'"><b>'+(x[0]?'✓':i+1)+'</b><span>'+x[1]+'</span></div>').join('')+'</div>';
+  const used=new Set(),u=unit;
+  const zoneRow=(e,r)=>{const i=prods.indexOf(e),stl=TYPE_STYLE[e.ptype]||TYPE_STYLE.autre;let wl='';
+    if(r){const s=wallOfBox(r,pBox(e));if(s)wl='<span class="wl">'+SIDE_LETTER[s]+'</span>';}
+    const dims=[e.w,e.d].filter(x=>x).join(' × ')+(e.h?' · H '+e.h:'')+' '+u;
+    return '<div class="zn"><span class="nb" style="background:'+stl.st+'">'+(i+1)+'</span><div class="tx"><b>'+escapeHtml(e.name||PTYPE[e.ptype]||'Zone')+'</b><small>'+wl+escapeHtml(PTYPE[e.ptype]||'')+' · '+escapeHtml(dims)+'</small></div><button data-fiche="'+i+'" title="Ouvrir la fiche atelier de cette zone">Détailler →</button></div>';};
+  rooms.forEach((r,ri)=>{const b=parentBox(r),k=pxPerCm||DEF_PX,sp=r.space||{};
+    const zs=zones.filter(e=>inRoom(r,e));zs.forEach(e=>used.add(e));
+    const ops=elements.filter(o=>o.type==='open'&&o.of===r.id).map(o=>(OPEN_LB[o.kind]||'')+' '+o.wv+' (mur '+(SIDE_LETTER[o.side]||'')+')');
+    h+='<div class="sp"><div class="sp-h"><b>'+escapeHtml(roomName(r,ri))+'</b><small>'+escapeHtml(sp.type&&sp.type!==roomName(r,ri)?sp.type+' · ':'')+wallLen(r,'top')+' × '+wallLen(r,'left')+' cm'+(sp.hp?' · plafond '+escapeHtml(sp.hp)+' cm':'')+'</small></div>'+
+      (zs.length?zs.map(e=>zoneRow(e,r)).join(''):'<div class="empty">Aucune zone : outil <b>Zone</b>, puis touche un mur.</div>')+
+      (ops.length?'<div class="ops">Ouvertures : '+escapeHtml(ops.join(' · '))+'</div>':'')+'</div>';});
+  const rest=zones.filter(e=>!used.has(e));
+  if(rest.length)h+='<div class="sp"><div class="sp-h" style="background:#64748b"><b>Hors espace</b><small>Zones posées en dehors d\'un espace</small></div>'+rest.map(e=>zoneRow(e,null)).join('')+'</div>';
+  const old=prods.filter(e=>!e.box);
+  if(old.length)h+='<div class="sp"><div class="sp-h" style="background:#64748b"><b>Repères (ancien relevé)</b></div>'+old.map(e=>zoneRow(e,null)).join('')+'</div>';
+  if(box.dataset.h!==h){box.innerHTML=h;box.dataset.h=h;}}
+const PTYPE={sdb:'salle de bain',bureau:'bureau',placard:'placard',cuisine:'cuisine',bas:'caisson bas',haut:'caisson haut',colonne:'colonne',vide:'espace vide',tv:'meuble TV',meuble:'meuble',autre:'autre'};
 $('#legend').addEventListener('click',e=>{const f=e.target.closest('[data-fac]');if(f){goFacade(f.dataset.fac);return;}const b=e.target.closest('[data-fiche]');if(!b)return;goFiche(+b.dataset.fiche);});
 
 /* ── dessin ── */
@@ -664,10 +712,10 @@ canvas.addEventListener('pointerdown',e=>{try{canvas.setPointerCapture(e.pointer
   if(tool==='open'){const nw=nearestWall(p);if(!nw){flash('Touche directement un mur (un côté de la pièce ou une ligne)');activePointer=null;return;}
     askOpen(null).then(o=>{if(!o)return;ensureScale();ensureIds();commit({type:'open',of:nw.P.id,side:nw.side,t:nw.t,...o,flip:false,hinge:false});flash('Glisse-la le long du mur · ↻ pour le sens d’ouverture');});activePointer=null;return;}
   if(tool==='room'){askRoom().then(r=>{if(!r)return;ensureScale();const k=pxPerCm,x1=p.x,y1=p.y,x2=x1+toCm(r.L)*k,y2=y1+toCm(r.W)*k,o=34;
-      ensureIds();const room={type:'rect',room:true,id:'e'+(NEXTID++),x1,y1,x2,y2,color:'#1b3a5c',w:5};
+      ensureIds();const room={type:'rect',room:true,space:{type:r.type,hp:r.hp},id:'e'+(NEXTID++),x1,y1,x2,y2,color:'#1b3a5c',w:5};
       const els=[room,...linkDims(room,['top','left'],[r.L,r.W])];
       if(r.name)els.push({type:'text',of:room.id,dx:10,dy:(y2-y1)-30,x:x1+10,y:y2-30,value:r.name,size:18,color:'#1b3a5c'});
-      commitEls(els);$('#btnFit').onclick();tool='product';setToolUI();flash('Pièce dessinée · touche un coin pour poser un produit');});activePointer=null;return;}
+      commitEls(els);$('#btnFit').onclick();tool='product';setToolUI();flash('Étape 2 : touche le mur où ira le produit pour poser une zone');});activePointer=null;return;}
   if(tool==='text'){askValue('Note / repère',false,'').then(v=>{if(v!=null&&v.trim()){const t={type:'text',x:p.x,y:p.y,value:v.trim(),size:18,color};attachText(t);commit(t);}});activePointer=null;return;}
   if(tool==='pen'){current={type:'pen',pts:[p],color,w:lineW};redraw();return;}
   // line / rect / dim / scale : point de départ accroché
@@ -729,7 +777,8 @@ function zoomAt(f,cx,cy){const ns=clamp(scale*f,0.2,8);const wx=(cx-view.x)/scal
 $('#btnZoomIn').onclick=()=>zoomAt(1.25,W/2,H/2);
 $('#btnZoomOut').onclick=()=>zoomAt(0.8,W/2,H/2);
 $('#zoomLabel').onclick=()=>zoomAt(1/scale,W/2,H/2);
-$('#btnLegend').onclick=()=>{legendOn=!legendOn;renderLegend();};
+$('#btnLegend').onclick=()=>{legendOn=!legendOn;$('#legend').classList.toggle('closed',!legendOn);$('#btnLegend').classList.toggle('on',legendOn);requestAnimationFrame(resize);};
+$('#btnAdv').onclick=()=>{const a=$('#advBar');a.hidden=!a.hidden;$('#btnAdv').classList.toggle('on',!a.hidden);};
 $('#btnFit').onclick=()=>{if(!elements.length){scale=1;view={x:0,y:0};updateZoom();redraw();return;}
   let a=Infinity,b=Infinity,c=-Infinity,d=-Infinity;for(const el of elements){const x=bbox(el);a=Math.min(a,x.x);b=Math.min(b,x.y);c=Math.max(c,x.x+x.w);d=Math.max(d,x.y+x.h);}
   const pad=40,bw=(c-a)||1,bh=(d-b)||1;scale=clamp(Math.min((W-pad*2)/bw,(H-pad*2)/bh),0.2,8);
@@ -762,11 +811,11 @@ $('#mInput').addEventListener('keydown',e=>{if(e.key==='Enter')closeModal($('#mI
 let pResolve=null;
 function askProduct(preset){return new Promise(res=>{pResolve=res;
   $('#pName').value=preset&&preset.name||'';$('#pType').value=preset&&preset.ptype||'placard';$('#pW').value=preset&&preset.w||'';$('#pH').value=preset&&preset.h||'';$('#pD').value=preset&&preset.d||'';$('#pQ').value=(preset&&preset.qty)||'1';
-  $('#pUnitNote').textContent='Dimensions en '+unit;$('#povl').classList.add('show');setTimeout(()=>$('#pName').focus(),50);});}
+  $('#pUnitNote').textContent='Dimensions en '+unit+' · le détail (caissons, colonnes, vides) se fait dans la fiche';$('#povl').classList.add('show');setTimeout(()=>$('#pName').focus(),50);});}
 function closeProduct(val){$('#povl').classList.remove('show');if(pResolve){pResolve(val);pResolve=null;}}
 $('#pCancel').onclick=()=>closeProduct(null);
 $('#pOk').onclick=()=>{const name=$('#pName').value.trim(),w=$('#pW').value.trim(),h=$('#pH').value.trim(),d=$('#pD').value.trim(),q=$('#pQ').value.trim()||'1';
-  if(!name&&!w&&!h&&!d){closeProduct(null);return;}closeProduct({name,ptype:$('#pType').value,w,h,d,qty:q});};
+  if(!name&&!w&&!h&&!d){closeProduct(null);return;}closeProduct({name:name||(PTYPE[$('#pType').value]||'Zone').replace(/^./,c=>c.toUpperCase()),ptype:$('#pType').value,w,h,d,qty:q});};
 $('#pQ').addEventListener('keydown',e=>{if(e.key==='Enter')$('#pOk').click();});
 
 /* ── stockage : tablette (hors ligne) + cloud Supabase, même base que les fiches atelier ── */
@@ -782,7 +831,9 @@ async function clReq(path,opt={}){const c=cloudCfg();if(!c)throw new Error('clou
   const tx=await r.text();return tx?JSON.parse(tx):null;}
 function newId(){return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function meta(){return{chantier:$('#fChantier').value.trim(),client:$('#fClient').value.trim(),date:$('#fDate').value,hp:$('#fHp').value.trim(),unit,pxPerCm};}
-function produitsOut(){return productsOf().map((e,i)=>({n:i+1,nom:e.name||'',type:e.ptype||'autre',w:e.w||'',h:e.h||'',d:e.d||'',qty:e.qty||'1',unit}));}
+function produitsOut(){let rooms=[];try{rooms=roomsOf();}catch(e){}
+  return productsOf().map((e,i)=>{const r=e.box?rooms.find(q=>inRoom(q,e)):null,sd=r?wallOfBox(r,pBox(e)):null;
+    return{n:i+1,nom:e.name||'',type:e.ptype||'autre',w:e.w||'',h:e.h||'',d:e.d||'',qty:e.qty||'1',unit,espace:r?roomName(r,rooms.indexOf(r)):'',mur:sd?SIDE_LETTER[sd]:'',hp:r&&r.space&&r.space.hp||''};});}
 function snapshot(){let facades=[];try{facades=computeFacades();}catch(e){console.warn(e);}return{format:'bes-releve-v2',id:RID,meta:meta(),elements,produits:produitsOut(),facades};}
 function store(){return lsGet(RL_KEY)||{};}
 function setSync(cls,txt){const el=$('#sync');el.className='sync '+cls;el.textContent=txt;}
@@ -901,7 +952,8 @@ resize();updateZoom();
 (async()=>{const q=new URLSearchParams(location.search),id=q.get('id')||(q.get('new')?null:lsGet(RL_CUR));
   if(id&&(store()[id]||q.get('id'))&&await openRel(id)){}else newReleve();
   if(q.get('chantier')&&!$('#fChantier').value)$('#fChantier').value=q.get('chantier');
-  READY=true;pushAll();flash('Définis l\'échelle, puis dessine : mesures et formes auto');})();
+  if(innerWidth<900){legendOn=false;$('#legend').classList.add('closed');}else $('#btnLegend').classList.add('on');
+  READY=true;pushAll();if(!elements.length){tool='room';setToolUI();flash('Étape 1 : touche le plan pour dessiner l\'espace');}else{tool='select';setToolUI();flash('Relevé ouvert');}})();
 </script>
 </body>
 </html>

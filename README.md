@@ -7,6 +7,8 @@ Application de production de BOIS ECO-STYLE : saisie des meubles (placards, cuis
 
 ## Relevé de chantier
 
+Méthode en 3 étapes : 1. **Espace** (type de pièce, longueur × largeur, plafond) · 2. **Zones** de produit le long des murs (longueur, profondeur, hauteur) · 3. **Détailler** : la fiche s'ouvre avec la longueur de la zone et vérifie que caissons bas, colonnes, vides (et hauts) retombent exactement sur la mesure relevée (boutons « + caisson / + espace vide du reste »).
+
 - Page : `releve/` (bouton « Relevé de chantier » à l'accueil), croquis coté sur tablette
 - Enregistrement : sur l'appareil (fonctionne sans internet) puis envoi automatique dans Supabase (table `releves`) dès que la connexion revient
 - Outil « Pièce » : longueur × largeur, la pièce se dessine droite et cotée. Outil « Produit » : bloc à l'échelle (vu de dessus, façade en jaune), déplaçable, aimanté aux coins, ↻ pour le tourner
