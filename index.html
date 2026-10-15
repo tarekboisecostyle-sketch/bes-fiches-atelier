@@ -240,6 +240,8 @@ body.starting .wrap>section:not(#startScreen){display:none}
 .rl-prods{display:flex;flex-wrap:wrap;gap:6px}
 .rl-prods button{border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:6px 10px;font:500 13px var(--f-body);cursor:pointer;text-align:start}
 .rl-prods button:hover{border-color:var(--accent)}
+.rl-prods button.fac{border-color:var(--mark);background:var(--accent-soft)}
+.rl-prods button.fac b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--mark);color:#1a1400}
 .rl-prods button b{font-family:var(--f-mono);color:var(--accent);margin-inline-end:6px}
 .rl-prods button small{display:block;color:var(--muted);font-size:11.5px}
 .relban{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;background:var(--accent-soft);border-left:4px solid var(--mark);padding:10px 14px;margin-bottom:14px}
@@ -1472,7 +1474,7 @@ $('#photoIn').addEventListener('change',e=>{const f=e.target.files[0];if(!f)retu
 const RL_KEY='bes_releves';
 const relStore=()=>lsGet(RL_KEY)||{};
 const relMM=(v,u)=>{const n=parseFloat(String(v??'').replace(',','.'));return n>0?Math.round(u==='m'?n*1000:n*10):null;};
-const relTypeLb={placard:'Placard',cuisine:'Cuisine',tv:'Meuble TV',meuble:'Meuble',autre:'Autre'};
+const relTypeLb={placard:'Placard',cuisine:'Cuisine',bas:'Caisson bas',haut:'Caisson haut',colonne:'Colonne',vide:'Espace vide',tv:'Meuble TV',meuble:'Meuble',autre:'Autre'};
 async function relGet(id){const loc=relStore()[id];
   if(loc&&!loc.synced)return loc.data;
   if(clOn()){try{const r=await clReq(`releves?id=eq.${encodeURIComponent(id)}&select=data`);if(r&&r[0])return r[0].data;}catch(e){}}
@@ -1486,13 +1488,15 @@ async function renderRelList(){$('#rlState').textContent='Chargement des relevé
   $('#rlState').innerHTML=cloudOk?'':'<span class="st-warn">Cloud injoignable : seuls les relevés de cet appareil sont affichés.</span>';
   $('#rlList').innerHTML=list.length?list.map(r=>{const d=r.data||{},m=d.meta||{},ps=d.produits||[];
     return `<div class="rl-rel"><div class="rl-h"><div><b>${esc(m.chantier||'Chantier sans nom')}</b>${m.client?' · '+esc(m.client):''} <small>${esc(m.date||'')}${r.cloud?'':' · sur cet appareil'}</small></div><a href="releve/?id=${encodeURIComponent(r.id)}">Voir / modifier le croquis</a></div>
+      ${(d.facades||[]).filter(f=>f.elements&&f.elements.length).length?`<div class="rl-prods">${d.facades.filter(f=>f.elements&&f.elements.length).map(f=>`<button type="button" class="fac" data-rlf="${esc(r.id)}" data-key="${esc(f.piece+':'+f.mur)}"><b>${esc(f.mur)}</b>Façade · ${esc(f.nom)}<small>${f.elements.length} élément(s) · mur ${f.longueur} cm${(f.ouvertures||[]).length?' · '+f.ouvertures.length+' ouverture(s)':''}</small></button>`).join('')}</div>`:''}
       <div class="rl-prods">${ps.length?ps.map((p,i)=>`<button type="button" data-rl="${esc(r.id)}" data-i="${i}"><b>${p.n}</b>${esc(p.nom||'Produit')}<small>${relTypeLb[p.type]||''} · ${[p.w,p.h,p.d].filter(x=>x).join(' × ')} ${esc(p.unit||'cm')}${+p.qty>1?' · ×'+esc(p.qty):''}</small></button>`).join(''):'<span class="hint">Aucun produit posé sur ce croquis (outil « Produit »).</span>'}</div></div>`;}).join('')
     :'<p class="hint">Aucun relevé pour l\'instant. Le commercial le crée avec « Nouveau relevé ».</p>';}
-$('#rlList').addEventListener('click',async e=>{const b=e.target.closest('[data-rl]');if(!b)return;b.disabled=true;
+$('#rlList').addEventListener('click',async e=>{const f=e.target.closest('[data-rlf]');if(f){f.disabled=true;try{await ficheFromFacade(f.dataset.rlf,f.dataset.key);}catch(err){$('#rlState').innerHTML=`<span class="st-warn">${esc(err.message)}</span>`;f.disabled=false;}return;}
+  const b=e.target.closest('[data-rl]');if(!b)return;b.disabled=true;
   try{await ficheFromReleve(b.dataset.rl,+b.dataset.i);}catch(err){$('#rlState').innerHTML=`<span class="st-warn">${esc(err.message)}</span>`;b.disabled=false;}});
 async function ficheFromReleve(id,i){const d=await relGet(id);if(!d)throw new Error('Relevé introuvable (ni sur cet appareil ni dans le cloud).');
   const m=d.meta||{},p=(d.produits||[])[i];if(!p)throw new Error('Ce produit n\'existe plus dans le relevé.');
-  const u=p.unit||m.unit||'cm',type={placard:'placard',cuisine:'cuisine',tv:'tv',meuble:'meuble'}[p.type]||'meuble';
+  const u=p.unit||m.unit||'cm',type={placard:'placard',cuisine:'cuisine',bas:'cuisine',haut:'cuisine',colonne:'cuisine',vide:'cuisine',tv:'tv',meuble:'meuble'}[p.type]||'meuble';
   const ch=m.chantier||'Chantier',name=`${ch} · ${p.nom||relTypeLb[p.type]||'produit '+p.n}`;
   const L=relMM(p.w,u),hp=relMM(m.hp,u),H=relMM(p.h,u)||(type==='placard'?hp:null),P=relMM(p.d,u),Q=parseInt(p.qty)||1;
   const link=JSON.stringify({id,i,n:p.n,nom:p.nom||'',type:p.type||'',L,H,P,Q,hp,chantier:ch});
@@ -1507,8 +1511,31 @@ async function ficheFromReleve(id,i){const d=await relGet(id);if(!d)throw new Er
   $('#inReleve').value=link;render();enterWork();$('#pjSave').click();
   pjMsg(type==='placard'?`Fiche créée depuis le relevé : ${L||'?'} × ${H||'?'} × ${P||'?'} mm. Vérifiez compartiments, portes et étagères.`
     :`Fiche créée depuis le relevé. Mesures relevées : ${[L,H,P].map(x=>x||'?').join(' × ')} mm. Placez les caissons dans cet espace.`);}
+const FAC_KIND={bas:'bas-porte',cuisine:'bas-porte',haut:'haut',colonne:'col',vide:'vide-bas',placard:'placard',tv:'tv-susp',meuble:'bas-porte',autre:'panneau'};
+async function ficheFromFacade(id,key){const d=await relGet(id);if(!d)throw new Error('Relevé introuvable (ni sur cet appareil ni dans le cloud).');
+  const m=d.meta||{},f=(d.facades||[]).find(x=>x.piece+':'+x.mur===key);if(!f||!(f.elements||[]).length)throw new Error('Cette façade n\'a plus d\'élément dans le relevé.');
+  const ch=m.chantier||'Chantier',name=`${ch} · ${f.nom} · mur ${f.mur}`,mm=v=>v>0?Math.round(v*10):null;
+  const kit=f.elements.some(e=>['bas','haut','colonne','vide','cuisine'].includes(e.type))?'cuisine':f.elements.every(e=>e.type==='tv')?'tv':'meuble';
+  const link=JSON.stringify({id,facade:key,mur:f.mur,nom:f.nom,n:f.elements.length,longueur:mm(f.longueur),chantier:ch,hp:relMM(m.hp,m.unit||'cm')});
+  const loc=pjList().find(x=>x.name===name);
+  if(loc){applyState(loc.state);$('#pjName').value=name;enterWork();pjMsg(`Fiche « ${name} » déjà existante : ouverte.`);return;}
+  if(clOn()){try{const r=await clReq(`fiches_projets?name=eq.${encodeURIComponent(name)}&select=name,data`);
+    if(r&&r[0]){applyState(r[0].data);$('#pjName').value=name;enterWork();pjMsg(`Fiche « ${name} » déjà existante : ouverte depuis le cloud.`);return;}}catch(e){}}
+  window.USE_EX=false;window.KIT_PLACARD=true;loadProduct(kit);window.KIT_PLACARD=false;
+  KIT.mods=[];
+  const add=(k,over)=>{const md=mkMod(k,over);md.k=k;md.rep=nextRep(md);KIT.mods.push(md);return md;};
+  f.elements.forEach(e=>{const k=FAC_KIND[e.type]||'bas-porte',o={x:mm(e.pos)??0,q:parseInt(e.qty)||1};
+    if(e.w>0)o.L=mm(e.w);if(e.h>0)o.H=mm(e.h);if(e.d>0)o.P=mm(e.d);if(k==='haut')o.y=null;
+    add(k,o);});
+  (f.ouvertures||[]).forEach(o=>{if(!(o.w>0))return;
+    if(o.type==='fenetre')add('vide-haut',{x:mm(o.pos),L:mm(o.w),y:null});
+    else add('vide-bas',{x:mm(o.pos),L:mm(o.w),H:o.h>0?mm(o.h):2000});});
+  $('#inChantier').value=ch;$('#pjName').value=name;$('#inReleve').value=link;
+  loadModule(0);enterWork();$('#pjSave').click();
+  pjMsg(`Façade mur ${f.mur} importée : ${f.elements.length} élément(s) placés à leur position le long du mur (${mm(f.longueur)} mm). Les portes et fenêtres sont des espaces vides repérés VD. Réglez maintenant chaque caisson.`);}
 function updRelBanner(){const el=$('#relBanner');let r=null;try{r=JSON.parse($('#inReleve').value||'null');}catch(e){}
   if(!r||document.body.classList.contains('starting')){el.hidden=true;return;}
+  if(r.facade){el.hidden=false;el.innerHTML=`<span>Relevé · façade</span><b>Mur ${esc(r.mur)} · ${esc(r.nom||'')}</b><span class="muted">${r.n} élément(s) · mur ${r.longueur||'?'} mm${r.hp?' · plafond '+r.hp+' mm':''}</span><a href="releve/?id=${encodeURIComponent(r.id)}">Voir le croquis →</a>`;return;}
   const dims=[['L',r.L],['H',r.H],['P',r.P]].filter(x=>x[1]).map(x=>`${x[0]} ${x[1]}`).join(' × ');
   el.hidden=false;el.innerHTML=`<span>Relevé de chantier</span><b>${esc(r.n+' · '+(r.nom||relTypeLb[r.type]||'produit'))}</b><span class="muted">${dims?dims+' mm':'sans mesures'}${r.Q>1?' · ×'+r.Q:''}${r.hp?' · plafond '+r.hp+' mm':''}</span><a href="releve/?id=${encodeURIComponent(r.id)}">Voir le croquis →</a>`;}
 
@@ -1544,7 +1571,7 @@ $('#pjName').addEventListener('input',updHeader);$('#inChantier').addEventListen
 renderPjList();$('#clUrl').value=CL.url||'';$('#clKey').value=CL.key||'';clRefresh();
 renderComps();render();showStart();
 {const q=new URLSearchParams(location.search);if(q.get('releve')){try{window.history.replaceState(null,'',location.pathname);}catch(e){}
-  ficheFromReleve(q.get('releve'),+q.get('p')||0).catch(err=>{$('#rlState').innerHTML=`<span class="st-warn">${esc(err.message)}</span>`;});}}
+  (q.get('mur')?ficheFromFacade(q.get('releve'),q.get('mur')):ficheFromReleve(q.get('releve'),+q.get('p')||0)).catch(err=>{$('#rlState').innerHTML=`<span class="st-warn">${esc(err.message)}</span>`;});}}
 </script>
 
 </html>
