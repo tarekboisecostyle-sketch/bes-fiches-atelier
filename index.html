@@ -233,6 +233,18 @@ body.starting .wrap>section:not(#startScreen){display:none}
 .st-brand{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px}.st-brand .st-bl{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-right:4px}.st-brand a.btn{text-decoration:none}
 .st-card{background:var(--surface);border:1px solid var(--line);padding:18px;display:grid;gap:8px;align-content:start;min-width:0}
 .st-card h2{margin-bottom:6px}
+.st-card.wide{grid-column:1/-1}
+.rl-rel{border-top:1px solid var(--line);padding:10px 0;display:grid;gap:6px}
+.rl-rel .rl-h{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;justify-content:space-between}
+.rl-rel .rl-h small{color:var(--muted)}
+.rl-prods{display:flex;flex-wrap:wrap;gap:6px}
+.rl-prods button{border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:6px 10px;font:500 13px var(--f-body);cursor:pointer;text-align:start}
+.rl-prods button:hover{border-color:var(--accent)}
+.rl-prods button b{font-family:var(--f-mono);color:var(--accent);margin-inline-end:6px}
+.rl-prods button small{display:block;color:var(--muted);font-size:11.5px}
+.relban{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;background:var(--accent-soft);border-left:4px solid var(--mark);padding:10px 14px;margin-bottom:14px}
+.relban b{font-family:var(--f-display);font-size:17px}
+.relban a{color:var(--accent);font-weight:600}
 .st-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
 .st-type{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--fg);padding:12px;cursor:pointer;display:grid;gap:4px;font:inherit}
 .st-type b{font:600 17px var(--f-display);letter-spacing:.02em}
@@ -327,6 +339,7 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
     <span class="st-bl">Activité</span>
     <span class="btn solid" aria-current="page">BES · sur mesure</span>
     <a class="btn" href="zwaq/">ZWAQ DECO · produits catalogue →</a>
+    <a class="btn" href="releve/?new=1">Relevé de chantier · nouveau croquis →</a>
   </div>
   <div class="st-grid">
     <div class="st-card">
@@ -351,6 +364,12 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
       <div class="pb-row"><button type="button" class="btn" id="stResume" hidden>Reprendre le travail en cours</button><label class="btn filebtn">Ouvrir un fichier (.json)<input type="file" id="stImport" accept=".json,application/json"></label></div>
       <p class="hint" id="stCloudState" style="margin-top:10px"></p>
       <div id="stList" class="st-list"></div>
+    </div>
+    <div class="st-card wide">
+      <div class="rl-h" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h2>Depuis un relevé de chantier</h2><a class="btn" href="releve/?new=1">+ Nouveau relevé</a></div>
+      <p class="hint" style="margin:0">Choisissez un produit relevé sur place : la fiche se crée avec le chantier et les mesures déjà remplies. Si sa fiche existe déjà, elle s'ouvre.</p>
+      <p class="hint" id="rlState"></p>
+      <div id="rlList"></div>
     </div>
   </div>
 </section>
@@ -388,6 +407,7 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
     <h2>1 · Saisie et plan en temps réel</h2>
     <p class="muted">Changez une cote : le plan, les pièces et la fiche se recalculent tout de suite.</p>
   </div>
+  <div class="relban" id="relBanner" hidden></div>
   <div class="kitbar" id="kitBar" hidden>
     <div class="kb-head"><h3>Produits du projet</h3><span class="hint">Cliquez un produit pour le régler. Tous restent dans le même projet et la même fiche.</span></div>
     <div class="kit" id="kitList"></div>
@@ -410,6 +430,7 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
   </div>
   <div class="work">
     <form class="panel" id="form" onsubmit="return false">
+      <input type="hidden" id="inReleve" value="">
       <fieldset>
         <legend>Projet</legend>
         <label class="f">Chantier<input id="inChantier" type="text" value="Chantier exemple"></label>
@@ -572,42 +593,10 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
   <div class="sheets" id="sheets"></div>
 </section>
 
-<section>
-  <div class="sec-head">
-    <h2>4 · Lien avec le relevé de chantier</h2>
-    <p class="muted">Ce que BES_Releve_Chantier.html peut apporter à la fiche atelier, essayé ici avec un relevé exemple.</p>
-  </div>
-  <div class="link-grid">
-    <div>
-      <div class="flow">
-        <div><b>Relevé</b>Le commercial dessine et cote sur la tablette</div><span>→</span>
-        <div><b>Fichier relevé</b>Produits avec L, H, P, qté, repère</div><span>→</span>
-        <div><b>Fiche atelier</b>Dimensions pré-remplies, options à compléter</div>
-      </div>
-      <h3 style="margin-bottom:8px">Ce que le lien apporte</h3>
-      <ul class="gain">
-        <li>Les cotes prises sur place ne sont plus recopiées à la main. C'est la première source d'erreur avant même la découpe.</li>
-        <li>Le même repère (P1, P2…) et le même nom de chantier se retrouvent sur le relevé, le devis et la fiche atelier.</li>
-        <li>Le croquis du relevé peut être joint à la fiche pour que l'atelier voie l'emplacement réel.</li>
-        <li>Limite : le relevé donne l'encombrement, pas la construction. Compartiments, portes et étagères restent à choisir dans la fiche.</li>
-      </ul>
-      <div class="reco"><p><b>Proposition :</b> deux applications séparées qui partagent un petit fichier d'échange. Le relevé ajoute un bouton « Exporter les produits » ; la fiche atelier ajoute « Importer un relevé ». Chaque application reste simple et peut évoluer seule.</p></div>
-    </div>
-    <div>
-      <label class="f" for="relJson">Fichier exporté par le relevé (exemple, modifiable)</label>
-      <textarea id="relJson" spellcheck="false"></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-        <button type="button" class="btn solid" id="relImport">Importer dans la fiche</button>
-        <select id="relPick" style="width:auto"></select>
-      </div>
-      <div class="msg" id="relMsg" role="status"></div>
-    </div>
-  </div>
-</section>
 
 <section>
   <div class="sec-head">
-    <h2>5 · Points à valider ensemble</h2>
+    <h2>4 · Points à valider ensemble</h2>
     <p class="muted">Répondez par numéro. Ces choix deviennent les règles de l'application.</p>
   </div>
   <ol class="valid">
@@ -619,7 +608,7 @@ header.top::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5p
     <li class="done"><b>Étagères · validé</b>Espaces réglables compartiment par compartiment (vide = égaux). Fixation vissée ou sur tasseaux vissés ; les tasseaux sont comptés dans la quincaillerie.</li>
     <li class="done"><b>Mots arabes · validé</b>جنب، سقف، أرضية، فاصل، رف، قاعدة، سينتا (chant). Les chiffres restent en 0-9.</li>
     <li class="done"><b>Plan de découpe · validé</b>Trait de scie 4 mm, délignage 10 mm. Mélaminé uni : les pièces peuvent tourner. Décor bois : cocher « Décor avec sens », les pièces ne tournent plus.</li>
-    <li class="later"><b>Relevé · reporté</b>Le lien avec l'application de relevé sera traité plus tard.</li>
+    <li class="done"><b>Relevé · intégré</b>Le relevé de chantier fait partie de l'application (bouton à l'accueil). Ses produits créent la fiche avec les mesures déjà remplies, et la fiche garde le lien vers le croquis.</li>
     <li><b>Portes calées par compartiment (nouveau)</b>Chaque compartiment a 0, 1 ou 2 portes. Entre deux compartiments, chaque porte couvre la moitié de la séparation, moins la moitié du jeu.</li>
     <li><b>Cuisine complète (nouveau)</b>Chaque caisson a ses propres réglages (bas, haut, colonne, porte, tiroirs, niche frigo). Fiche : élévation de toute la cuisine, débit global repéré C1-5, H2-3…, plans de découpe communs, puis une page par caisson. Les hauts sont à 1450 du sol. Manque-t-il un type de caisson (angle, évier, four, hotte) ?</li>
     <li><b>Tiroirs derrière les portes (nouveau)</b>Choix par compartiment : tiroirs visibles en façade, ou tiroirs intérieurs derrière des portes pleine hauteur. Avec des portes battantes, faut-il des cales sur les côtés pour passer les charnières ? Si oui, de quelle épaisseur ?</li>
@@ -1395,7 +1384,7 @@ function snapState(){if(KIT)snapModule();const f={};
   document.querySelectorAll('#form input[id],#form select[id]').forEach(el=>{if(el.dataset.i!=null||el.type==='file')return;f[el.id]=el.type==='checkbox'?el.checked:el.value;});
   return {v:1,saved:new Date().toISOString(),mode:KIT?KIT.mode:CUR_MODE,form:f,comps:KIT?null:JSON.parse(JSON.stringify(S.comps)),
     kit:KIT?{mode:KIT.mode,cur:KIT.cur,mods:JSON.parse(JSON.stringify(KIT.mods))}:null,lang:LANG,name:$('#pjName').value};}
-function applyState(st){if(!st||!st.form)throw new Error('format');
+function applyState(st){if(!st||!st.form)throw new Error('format');$('#inReleve').value='';
   setModeUI(st.mode,!!st.kit);
   if(String(st.form.rRail)==='100'&&String(st.form.rCded)==='40'){st.form.rRail='90';st.form.rCded='34';}
   Object.entries(st.form).forEach(([id,v])=>{const el=document.getElementById(id);if(!el||el.type==='file')return;if(el.type==='checkbox')el.checked=!!v;else el.value=v;});
@@ -1479,37 +1468,55 @@ document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',(
   LANG=b.dataset.lang;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderSheets();}));
 $('#photoIn').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{PHOTO=fr.result;renderSheets();};fr.readAsDataURL(f);});
 
-/* relevé */
-const sample={format:"bes-releve-v1",chantier:"Villa Amelkis 131",date:"2026-10-06",produits:[
-  {repere:"P1",nom:"Placard chambre parents",type:"placard",L:2400,H:2600,P:600,qte:1,note:"mur à mur"},
-  {repere:"P2",nom:"Placard chambre enfant",type:"placard",L:1500,H:2400,P:580,qte:2},
-  {repere:"C1",nom:"Cuisine linéaire",type:"cuisine",L:3200,H:900,P:600,qte:1}]};
-$('#relJson').value=JSON.stringify(sample,null,2);
-function fillPick(){
-  let d;try{d=JSON.parse($('#relJson').value);}catch(e){$('#relPick').innerHTML='';return;}
-  $('#relPick').innerHTML=(d.produits||[]).map((p,i)=>`<option value="${i}">${esc(p.repere)} · ${esc(p.nom)}</option>`).join('');
-}
-fillPick();
-$('#relJson').addEventListener('input',fillPick);
-$('#relImport').addEventListener('click',()=>{
-  const msg=$('#relMsg');let d;
-  try{d=JSON.parse($('#relJson').value);}catch(e){msg.innerHTML='<span class="st-warn">Le fichier n\'est pas lisible. Vérifiez les accolades et les guillemets.</span>';return;}
-  const p=(d.produits||[])[+$('#relPick').value];
-  if(!p){msg.textContent='Aucun produit dans ce relevé.';return;}
-  if(p.type!=='placard'){msg.innerHTML=`<span class="st-warn">${esc(p.repere)} est un produit « ${esc(p.type)} ». Seul le placard existe dans cette démo.</span>`;return;}
-  $('#inChantier').value=d.chantier||'';$('#inProduit').value=`${p.repere} · ${p.nom}`;
-  $('#inL').value=p.L;$('#inH').value=p.H;$('#inP').value=p.P;$('#inQ').value=p.qte||1;
-  const nd=Math.max(2,Math.ceil(p.L/550));
-  render();
-  msg.innerHTML=`<span class="st-ok">${esc(p.repere)} importé : ${p.L} × ${p.H} × ${p.P}, quantité ${p.qte||1}. Vérifiez compartiments et étagères.</span>`;
-  document.querySelector('.work').scrollIntoView({behavior:'smooth',block:'start'});
-});
+/* ---------- relevé de chantier : même base, même appareil ---------- */
+const RL_KEY='bes_releves';
+const relStore=()=>lsGet(RL_KEY)||{};
+const relMM=(v,u)=>{const n=parseFloat(String(v??'').replace(',','.'));return n>0?Math.round(u==='m'?n*1000:n*10):null;};
+const relTypeLb={placard:'Placard',cuisine:'Cuisine',tv:'Meuble TV',meuble:'Meuble',autre:'Autre'};
+async function relGet(id){const loc=relStore()[id];
+  if(loc&&!loc.synced)return loc.data;
+  if(clOn()){try{const r=await clReq(`releves?id=eq.${encodeURIComponent(id)}&select=data`);if(r&&r[0])return r[0].data;}catch(e){}}
+  return loc?loc.data:null;}
+async function relList(){const map={},t=x=>new Date(x||0).getTime();let cloudOk=true;
+  if(clOn()){try{(await clReq('releves?select=id,data,updated_at&order=updated_at.desc&limit=40')).forEach(r=>map[r.id]={id:r.id,data:r.data,updated:r.updated_at,cloud:true});}catch(e){cloudOk=false;}}
+  Object.values(relStore()).forEach(r=>{const ex=map[r.id];if(!ex||!r.synced||t(r.updated)>t(ex.updated))map[r.id]={id:r.id,data:r.data,updated:r.updated,cloud:!!r.synced};});
+  return {cloudOk,list:Object.values(map).sort((a,b)=>t(b.updated)-t(a.updated))};}
+async function renderRelList(){$('#rlState').textContent='Chargement des relevés…';
+  const {cloudOk,list}=await relList();
+  $('#rlState').innerHTML=cloudOk?'':'<span class="st-warn">Cloud injoignable : seuls les relevés de cet appareil sont affichés.</span>';
+  $('#rlList').innerHTML=list.length?list.map(r=>{const d=r.data||{},m=d.meta||{},ps=d.produits||[];
+    return `<div class="rl-rel"><div class="rl-h"><div><b>${esc(m.chantier||'Chantier sans nom')}</b>${m.client?' · '+esc(m.client):''} <small>${esc(m.date||'')}${r.cloud?'':' · sur cet appareil'}</small></div><a href="releve/?id=${encodeURIComponent(r.id)}">Voir / modifier le croquis</a></div>
+      <div class="rl-prods">${ps.length?ps.map((p,i)=>`<button type="button" data-rl="${esc(r.id)}" data-i="${i}"><b>${p.n}</b>${esc(p.nom||'Produit')}<small>${relTypeLb[p.type]||''} · ${[p.w,p.h,p.d].filter(x=>x).join(' × ')} ${esc(p.unit||'cm')}${+p.qty>1?' · ×'+esc(p.qty):''}</small></button>`).join(''):'<span class="hint">Aucun produit posé sur ce croquis (outil « Produit »).</span>'}</div></div>`;}).join('')
+    :'<p class="hint">Aucun relevé pour l\'instant. Le commercial le crée avec « Nouveau relevé ».</p>';}
+$('#rlList').addEventListener('click',async e=>{const b=e.target.closest('[data-rl]');if(!b)return;b.disabled=true;
+  try{await ficheFromReleve(b.dataset.rl,+b.dataset.i);}catch(err){$('#rlState').innerHTML=`<span class="st-warn">${esc(err.message)}</span>`;b.disabled=false;}});
+async function ficheFromReleve(id,i){const d=await relGet(id);if(!d)throw new Error('Relevé introuvable (ni sur cet appareil ni dans le cloud).');
+  const m=d.meta||{},p=(d.produits||[])[i];if(!p)throw new Error('Ce produit n\'existe plus dans le relevé.');
+  const u=p.unit||m.unit||'cm',type={placard:'placard',cuisine:'cuisine',tv:'tv',meuble:'meuble'}[p.type]||'meuble';
+  const ch=m.chantier||'Chantier',name=`${ch} · ${p.nom||relTypeLb[p.type]||'produit '+p.n}`;
+  const L=relMM(p.w,u),hp=relMM(m.hp,u),H=relMM(p.h,u)||(type==='placard'?hp:null),P=relMM(p.d,u),Q=parseInt(p.qty)||1;
+  const link=JSON.stringify({id,i,n:p.n,nom:p.nom||'',type:p.type||'',L,H,P,Q,hp,chantier:ch});
+  // la fiche existe déjà : on l'ouvre
+  const loc=pjList().find(x=>x.name===name);
+  if(loc){applyState(loc.state);$('#pjName').value=name;enterWork();pjMsg(`Fiche « ${name} » déjà existante : ouverte.`);return;}
+  if(clOn()){try{const r=await clReq(`fiches_projets?name=eq.${encodeURIComponent(name)}&select=name,data`);
+    if(r&&r[0]){applyState(r[0].data);$('#pjName').value=name;enterWork();pjMsg(`Fiche « ${name} » déjà existante : ouverte depuis le cloud.`);return;}}catch(e){}}
+  window.USE_EX=false;window.KIT_PLACARD=true;loadProduct(type);window.KIT_PLACARD=false;
+  $('#inChantier').value=ch;$('#pjName').value=name;
+  if(type==='placard'){if(L)$('#inL').value=L;if(H)$('#inH').value=H;if(P)$('#inP').value=P;$('#inQ').value=Q;$('#inProduit').value='P'+p.n;}
+  $('#inReleve').value=link;render();enterWork();$('#pjSave').click();
+  pjMsg(type==='placard'?`Fiche créée depuis le relevé : ${L||'?'} × ${H||'?'} × ${P||'?'} mm. Vérifiez compartiments, portes et étagères.`
+    :`Fiche créée depuis le relevé. Mesures relevées : ${[L,H,P].map(x=>x||'?').join(' × ')} mm. Placez les caissons dans cet espace.`);}
+function updRelBanner(){const el=$('#relBanner');let r=null;try{r=JSON.parse($('#inReleve').value||'null');}catch(e){}
+  if(!r||document.body.classList.contains('starting')){el.hidden=true;return;}
+  const dims=[['L',r.L],['H',r.H],['P',r.P]].filter(x=>x[1]).map(x=>`${x[0]} ${x[1]}`).join(' × ');
+  el.hidden=false;el.innerHTML=`<span>Relevé de chantier</span><b>${esc(r.n+' · '+(r.nom||relTypeLb[r.type]||'produit'))}</b><span class="muted">${dims?dims+' mm':'sans mesures'}${r.Q>1?' · ×'+r.Q:''}${r.hp?' · plafond '+r.hp+' mm':''}</span><a href="releve/?id=${encodeURIComponent(r.id)}">Voir le croquis →</a>`;}
 
 /* ---------- écran de démarrage ---------- */
 let ST_TYPE=null;
-function updHeader(){const n=$('#pjName').value||'',c=$('#inChantier').value||'';$('#curProj').innerHTML=document.body.classList.contains('starting')?'':`<b>${esc(n||'Projet sans nom')}</b>${esc(c)}${c?' · ':''}${modeLb[KIT?KIT.mode:CUR_MODE]||''}`;}
+function updHeader(){updRelBanner();const n=$('#pjName').value||'',c=$('#inChantier').value||'';$('#curProj').innerHTML=document.body.classList.contains('starting')?'':`<b>${esc(n||'Projet sans nom')}</b>${esc(c)}${c?' · ':''}${modeLb[KIT?KIT.mode:CUR_MODE]||''}`;}
 function showStart(){document.body.classList.add('starting');ST_TYPE=null;document.querySelectorAll('.st-type').forEach(b=>b.setAttribute('aria-pressed','false'));
-  $('#stChantier').value='';$('#stName').value='';$('#stMsg').textContent='';$('#stResume').hidden=!lsGet(PJ_DRAFT);updHeader();renderStartList();window.scrollTo(0,0);}
+  $('#stChantier').value='';$('#stName').value='';$('#stMsg').textContent='';$('#stResume').hidden=!lsGet(PJ_DRAFT);updHeader();renderStartList();renderRelList();window.scrollTo(0,0);}
 function enterWork(){document.body.classList.remove('starting');updHeader();window.scrollTo(0,0);}
 async function renderStartList(){const loc=pjList();let html='';
   if(clOn()){$('#stCloudState').textContent='Chargement des projets du cloud…';
@@ -1522,7 +1529,7 @@ document.querySelectorAll('.st-type').forEach(b=>b.addEventListener('click',()=>
 $('#stCreate').addEventListener('click',()=>{const ch=$('#stChantier').value.trim(),nm=$('#stName').value.trim();
   if(!ch&&!nm){$('#stMsg').innerHTML='<span class="st-warn">Donnez au moins le nom du chantier ou du projet.</span>';$('#stChantier').focus();return;}
   if(!ST_TYPE){$('#stMsg').innerHTML='<span class="st-warn">Choisissez ce que vous voulez fabriquer.</span>';return;}
-  window.USE_EX=$('#stExample').checked;$('#inChantier').value=ch;
+  window.USE_EX=$('#stExample').checked;$('#inChantier').value=ch;$('#inReleve').value='';
   const name=nm||`${ch} · ${modeLb[ST_TYPE]}`;$('#pjName').value=name;
   window.KIT_PLACARD=true;loadProduct(ST_TYPE);window.KIT_PLACARD=false;window.USE_EX=false;$('#inChantier').value=ch;render();
   enterWork();$('#pjSave').click();});
@@ -1536,6 +1543,8 @@ $('#pjName').addEventListener('input',updHeader);$('#inChantier').addEventListen
 
 renderPjList();$('#clUrl').value=CL.url||'';$('#clKey').value=CL.key||'';clRefresh();
 renderComps();render();showStart();
+{const q=new URLSearchParams(location.search);if(q.get('releve')){try{window.history.replaceState(null,'',location.pathname);}catch(e){}
+  ficheFromReleve(q.get('releve'),+q.get('p')||0).catch(err=>{$('#rlState').innerHTML=`<span class="st-warn">${esc(err.message)}</span>`;});}}
 </script>
 
 </html>
