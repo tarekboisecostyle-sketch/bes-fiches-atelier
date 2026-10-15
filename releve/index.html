@@ -31,7 +31,7 @@
   .canvas-col{flex:1 1 auto;display:flex;flex-direction:column;min-width:0;min-height:0;}
   .canvas-wrap{flex:1 1 auto;position:relative;min-height:0;background:var(--white);overflow:hidden;}
   canvas{position:absolute;inset:0;touch-action:none;display:block;cursor:crosshair;}
-  .scalebar{position:absolute;left:12px;top:12px;display:none;align-items:center;gap:0;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;color:var(--navy-dark);z-index:15;box-shadow:0 3px 10px rgba(0,0,0,.08);}
+  .scalebar{position:absolute;right:12px;top:12px;display:none;align-items:center;gap:0;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:12px;font-weight:700;color:var(--navy-dark);z-index:15;box-shadow:0 3px 10px rgba(0,0,0,.08);}
   .scalebar .sb-bar{height:8px;border-bottom:3px solid var(--navy-dark);border-left:2px solid var(--navy-dark);border-right:2px solid var(--navy-dark);margin-right:7px;}
   .ctxbar{position:absolute;display:none;gap:4px;background:var(--navy-dark);padding:4px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.28);z-index:20;}
   .ctxbar button{border:0;background:rgba(255,255,255,.16);color:#fff;width:40px;height:40px;border-radius:8px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -482,7 +482,7 @@ function drawWorld(g){if(showGrid)drawGridWorld(g);for(const el of elements)draw
 function redraw(){
   ctx.setTransform(DPR,0,0,DPR,0,0);ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
   ctx.setTransform(DPR*scale,0,0,DPR*scale,view.x*DPR,view.y*DPR);
-  layoutLinked();drawWorld(ctx);if(current)drawEl(ctx,current);drawLivePreview(ctx);if(selected)drawSelection(selected);
+  layoutLinked();drawWorld(ctx);if(current)drawEl(ctx,current);if(GUIDES.length&&drag){ctx.save();ctx.strokeStyle='#e11d48';ctx.lineWidth=1.5/scale;ctx.setLineDash([6/scale,4/scale]);GUIDES.forEach(g=>{ctx.beginPath();ctx.moveTo(g.x1,g.y1);ctx.lineTo(g.x2,g.y2);ctx.stroke();});ctx.restore();}drawLivePreview(ctx);if(selected)drawSelection(selected);
   ctx.setTransform(DPR,0,0,DPR,0,0);updateHistoryBtns();positionCtxBar();renderLegend();updateScaleBar();scheduleSave();}
 
 /* scale bar */
@@ -583,7 +583,7 @@ function endPointer(e){pointers.delete(e.pointerId);
   if(gesture){if(pointers.size<2)gesture=null;activePointer=null;redraw();return;}
   if(e.pointerId!==activePointer)return;activePointer=null;
   if(drag&&drag.mode==='pan'){drag=null;canvas.style.cursor='grab';return;}
-  if(tool==='select'){if(drag)drag=null;positionCtxBar();return;}
+  if(tool==='select'){if(drag){drag=null;GUIDES=[];redraw();}positionCtxBar();return;}
   if(!current)return;const c=current;current=null;
   if(c.type==='pen'){if(c.pts.length>1){const out=shapeOn?cleanupPen(c):c;if(out!==c)finishShape(out);else commit(out);}else redraw();return;}
   if(c.type==='scale'){const L=Math.hypot(c.x2-c.x1,c.y2-c.y1);if(L<8/scale){redraw();return;}
@@ -600,15 +600,23 @@ canvas.addEventListener('wheel',e=>{e.preventDefault();const sp=screenPos(e);zoo
 
 function startSelect(p){if(selected){const hi=handleAt(selected,p);if(hi>=0){drag={mode:'handle',idx:hi,pushed:false};hideCtxBar();return;}}
   const i=hitTest(p);if(i>=0){selectEl(elements[i]);drag={mode:'move',last:p,pushed:false};hideCtxBar();}else{selectEl(null);drag=null;}redraw();}
+/* ── aimant de rangement : un élément approché d'un autre se colle bord à bord ou s'aligne ── */
+let GUIDES=[];
+function boxOf(el){return el.type==='product'&&el.box?pBox(el):el.type==='rect'?parentBox(el):null;}
+function setBoxPos(el,x,y){if(el.type==='product'){el.x=x;el.y=y;return;}const b=parentBox(el),dx=x-b.x,dy=y-b.y;el.x1+=dx;el.x2+=dx;el.y1+=dy;el.y2+=dy;}
+function snapMove(el,x,y){const b=boxOf(el),W=b.w,H=b.h;if(!magnetOn)return{x,y,guides:[]};
+  const R=20/scale,near=40/scale;let bx=null,by=null;
+  for(const o of elements){if(o===el)continue;const ob=boxOf(o)||(o.type==='line'?parentBox(o):null);if(!ob)continue;
+    const yOver=y<ob.y+ob.h+near&&y+H>ob.y-near,xOver=x<ob.x+ob.w+near&&x+W>ob.x-near;
+    if(yOver)for(const [mine,off] of [[x,0],[x+W,W]])for(const t of [ob.x,ob.x+ob.w]){const d=t-mine;if(Math.abs(d)<R&&(!bx||Math.abs(d)<Math.abs(bx.d)))bx={d,v:t,ob,off};}
+    if(xOver)for(const [mine,off] of [[y,0],[y+H,H]])for(const t of [ob.y,ob.y+ob.h]){const d=t-mine;if(Math.abs(d)<R&&(!by||Math.abs(d)<Math.abs(by.d)))by={d,v:t,ob,off};}}
+  const nx=bx?x+bx.d:x,ny=by?y+by.d:y,guides=[];
+  if(bx)guides.push({x1:bx.v,y1:Math.min(ny,bx.ob.y)-15,x2:bx.v,y2:Math.max(ny+H,bx.ob.y+bx.ob.h)+15});
+  if(by)guides.push({x1:Math.min(nx,by.ob.x)-15,y1:by.v,x2:Math.max(nx+W,by.ob.x+by.ob.w)+15,y2:by.v});
+  return{x:nx,y:ny,guides};}
 function doDrag(p){if(!drag)return;if(!drag.pushed){pushHistory();drag.pushed=true;}
-  if(drag.mode==='move'&&selected.box){drag.raw=drag.raw||{x:selected.x,y:selected.y};drag.raw.x+=p.x-drag.last.x;drag.raw.y+=p.y-drag.last.y;drag.last=p;
-    selected.x=drag.raw.x;selected.y=drag.raw.y;if(magnetOn){const b=pBox(selected),R=16/scale,me=selected;let best=null,bd=R;
-      const others=[];for(const el of elements){if(el===me)continue;const pb=el.type==='product'&&pBox(el);
-        if(pb)others.push({x:pb.x,y:pb.y},{x:pb.x+pb.w,y:pb.y},{x:pb.x,y:pb.y+pb.h},{x:pb.x+pb.w,y:pb.y+pb.h});
-        else if(el.type==='rect'||el.type==='line'){others.push({x:el.x1,y:el.y1},{x:el.x2,y:el.y2},{x:el.x1,y:el.y2},{x:el.x2,y:el.y1});}}
-      const cs=[{x:b.x,y:b.y},{x:b.x+b.w,y:b.y},{x:b.x,y:b.y+b.h},{x:b.x+b.w,y:b.y+b.h}];
-      for(const c of cs)for(const a of others){const d=Math.hypot(a.x-c.x,a.y-c.y);if(d<bd){bd=d;best={dx:a.x-c.x,dy:a.y-c.y};}}
-      if(best){selected.x+=best.dx;selected.y+=best.dy;}}}
+  if(drag.mode==='move'&&boxOf(selected)){if(!drag.raw){const b0=boxOf(selected);drag.raw={x:b0.x,y:b0.y};}
+    drag.raw.x+=p.x-drag.last.x;drag.raw.y+=p.y-drag.last.y;drag.last=p;const sn=snapMove(selected,drag.raw.x,drag.raw.y);setBoxPos(selected,sn.x,sn.y);GUIDES=sn.guides;}
   else if(drag.mode==='move'){moveEl(selected,p.x-drag.last.x,p.y-drag.last.y);drag.last=p;}else if(drag.mode==='handle')setHandle(selected,drag.idx,p);redraw();}
 
 /* zoom */
